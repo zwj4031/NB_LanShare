@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">局域网安全分享</title>
+    <style>
+        :root { --primary: #0078D4; --bg: #FAFAFA; --text: #323130; --border: #EDEBE9; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: background 0.2s; }
+        body.drag-hover { background: #E3F2FD !important; }
+        .navbar { background: #fff; padding: 16px 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .navbar h1 { margin: 0; font-size: 20px; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        
+        body.non-admin .control-panel { display: none !important; }
+        body.non-admin .list-header { grid-template-columns: 1fr 120px !important; }
+        body.non-admin .file-row { grid-template-columns: 1fr 120px !important; }
+        body.non-admin .list-header span:first-child { display: none !important; }
+        body.non-admin .list-header .col-action { display: none !important; }
+        body.non-admin .file-row span:first-child { display: none !important; }
+        body.non-admin .file-row .col-action { display: none !important; }
+
+        body.read-only-mode .control-panel { display: none !important; }
+        body.read-only-mode .list-header .col-action { display: none !important; }
+        body.read-only-mode .file-row .col-action { display: none !important; }
+        body.read-only-mode #batch-action-bar button[onclick="handleBatchDelete()"] { display: none !important; }
+        
+        @media (max-width: 600px) {
+            .navbar { padding: 12px 16px !important; }
+            .navbar h1 { font-size: 16px !important; }
+            .container { padding: 0 10px !important; margin: 16px auto !important; }
+            .list-header { grid-template-columns: 32px 1fr !important; padding: 8px 12px !important; }
+            .list-header .col-date, .list-header .col-type, .list-header .col-size, .list-header .col-action { display: none !important; }
+            .file-row { grid-template-columns: 32px 1fr !important; padding: 10px 12px !important; row-gap: 6px; }
+            .file-row .col-date, .file-row .col-type, .file-row .col-size { display: none !important; }
+            .file-row .col-action { grid-column: 1 / -1; justify-content: flex-end !important; padding-left: 0 !important; padding-top: 4px; }
+            .col-name a { font-size: 14px !important; word-break: break-all; }
+            .btn-group { gap: 8px !important; }
+            .btn-group .btn { padding: 6px 12px !important; font-size: 12px !important; }
+        }
+        .container { max-width: 1000px; margin: 32px auto; padding: 0 20px; }
+        .control-panel { margin-bottom: 20px; }
+        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+        .breadcrumb { background: #fff; padding: 14px 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px; font-size: 14px; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        #search-input:focus { border-color: var(--primary) !important; width: 220px !important; box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.15); }
+        .file-list { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 20px;}
+        .section-title { padding: 12px 24px; font-size: 15px; font-weight: 600; color: #323130; background: #F3F2F1; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;}
+        .list-header { display: grid; grid-template-columns: 40px 1fr 140px 90px 100px 100px; padding: 6px 24px; background: #FFF; border-bottom: 1px solid var(--border); font-weight: 600; color: #605E5C; font-size: 13px; align-items: center; }
+        .list-header .sortable { cursor: pointer; user-select: none; }
+        .list-header .sortable:hover { color: var(--primary); }
+        .list-header .sort-icon { font-size: 11px; margin-left: 4px; color: #a19f9d; }
+        .file-row { display: grid; grid-template-columns: 40px 1fr 140px 90px 100px 100px; padding: 8px 24px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.2s; }
+        .file-row:hover { background: #F3F2F1; }
+        .file-row:last-child { border-bottom: none; }
+        .col-name { display: flex; align-items: center; gap: 12px; overflow: hidden; min-width: 0; }
+        .col-name a { color: var(--text); text-decoration: none; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+        .col-name a:hover { color: var(--primary); }
+        .col-date { color: #605E5C; font-size: 13px; }
+        .col-type { color: #605E5C; font-size: 13px; }
+        .col-size { color: #605E5C; font-size: 13px; text-align: right; }
+        .col-action { text-align: right; padding-left: 28px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 16px; border-radius: 4px; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: #005A9E; }
+        .btn-outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        .btn-outline:hover { background: #F3F2F1; }
+        .btn-mini { padding: 2px 8px; font-weight: 600; border-radius: 4px; cursor: pointer; border: none; transition: background 0.2s; }
+        .btn-edit { background: #E1F5FE; color: #0288D1; border: 1px solid #B3E5FC; }
+        .btn-edit:hover { background: #B3E5FC; }
+        .btn-del { background: #FFEBEE; color: #D32F2F; border: 1px solid #FFCDD2; }
+        .btn-del:hover { background: #FFCDD2; }
+        .icon { font-size: 18px; }
+        .lang-select { font-size: 12px; border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; background: #fff; cursor: pointer; height: 26px; }
+    </style>
+</head>
+<body class="{{READONLY_CLASS}}">
+    <div class="navbar">
+        <h1><span class="icon">&#9729;</span> NB LAN Share</h1>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <select class="lang-select" id="lang-switch" onchange="switchLang(this.value)">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+            </select>
+            <span id="user-display-name" style="font-size: 13px; color: #605E5C; font-weight: 600; display: none;"></span>
+            <button class="btn btn-outline" id="btn-logout" style="display: none; padding: 4px 12px; font-size: 12px; height: 26px; border-radius: 4px;" onclick="handleLogout()" data-i18n="switchUser">切换用户</button>
+            <div id="admin-login-area" style="display: flex; align-items: center; gap: 8px;">
+                <input type="password" id="admin-pwd-input" data-i18n-placeholder="adminPwdPlaceholder" placeholder="输入管理密码..." style="display: none; padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; outline: none; width: 120px; height: 26px;">
+                <button class="btn btn-outline" id="admin-btn" style="padding: 4px 12px; font-size: 12px; height: 26px; border-radius: 4px; line-height: 1.2;" onclick="toggleAdminMode()" data-i18n="{{ADMIN_BTN_TEXT_KEY}}">Admin</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="batch-action-bar" style="display: none; background: #FFF5F5; border: 1px solid #FFCDD2; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span id="selected-count" style="font-size: 13px; color: #D32F2F; font-weight: 600; margin-right: 8px;">已选中 0 项</span>
+                <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px; height: 24px;" onclick="selectAll(true)" data-i18n="selectAll">全选</button>
+                <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px; height: 24px;" onclick="invertSelection()" data-i18n="invertSelect">反选</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-primary" style="padding: 4px 12px; font-size: 12px; font-weight: 600; height: 26px; border-radius: 4px;" onclick="handleBatchDownload()" data-i18n="batchDownload">打包下载</button>
+                <button class="btn" style="background: #D32F2F; color: #fff; padding: 4px 12px; font-size: 12px; font-weight: 600; height: 26px; border-radius: 4px;" onclick="handleBatchDelete()" data-i18n="batchDelete">批量删除</button>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="btn-group">
+                <button class="btn btn-primary" id="upload-btn" onclick="document.getElementById('file-input').click()" data-i18n="uploadFile">&#128228; 上传文件</button>
+                <button class="btn btn-primary" id="upload-dir-btn" onclick="document.getElementById('dir-input').click()" data-i18n="uploadFolder">&#128193; 上传目录</button>
+                <button class="btn btn-outline" onclick="handleCreateDir()" data-i18n="newFolder">&#128194; 新建目录</button>
+                <button class="btn btn-outline" onclick="toggleTextArea()" data-i18n="newText">&#128221; 新建文本</button>
+            </div>
+            <input type="file" id="file-input" style="display:none" multiple onchange="uploadFile()">
+            <input type="file" id="dir-input" style="display:none" webkitdirectory directory multiple onchange="uploadDirectory()">
+            <div id="text-upload-container" style="display: none; margin-top: 12px; background: #fff; padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                <input type="text" id="text-filename-input" data-i18n-placeholder="filenamePlaceholder" placeholder="请输入文件名(含后缀)..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; margin-bottom: 12px; outline: none; font-size: 14px; color: #333;">
+                <textarea id="text-input" data-i18n-placeholder="textContentPlaceholder" placeholder="输入内容后，将保存为上方指定的文件名并上传..." rows="6" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; margin-bottom: 12px; outline: none;"></textarea>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button class="btn btn-outline" onclick="toggleTextArea()" style="padding: 6px 16px;" data-i18n="btnCancel">取消</button>
+                    <button class="btn btn-primary" id="upload-text-btn" onclick="uploadText()" style="padding: 6px 16px;" data-i18n="btnGenerateUpload">生成并上传</button>
+                </div>
+            </div>
+            <div id="upload-progress-container" style="display:none; margin-top: 12px; background: #fff; padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; color:#333;">
+                    <span id="upload-progress-filename"></span>
+                    <span id="upload-progress-percent">0%</span>
+                </div>
+                <div style="width:100%; height:8px; background:#EDEBE9; border-radius:4px; overflow:hidden;">
+                    <div id="upload-progress-bar" style="width:0%; height:100%; background:var(--primary); border-radius:4px; transition:width 0.2s;"></div>
+                </div>
+                <div style="margin-top:6px; font-size:12px; color:#605E5C; text-align:center;" id="upload-progress-status" data-i18n="preparing">准备中...</div>
+            </div>
+        </div>
+
+        <div class="breadcrumb" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 10px 20px;">
+            <div style="flex: 1; display: flex; align-items: center; gap: 5px; overflow: hidden; white-space: nowrap;">
+                {{BREADCRUMB_HTML}}
+            </div>
+            <input type="text" id="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="&#128269; 搜索..." oninput="filterFiles(this.value)" style="padding: 5px 12px; font-size: 13px; border: 1px solid var(--border); border-radius: 20px; outline: none; width: 180px;">
+        </div>
+
+        {{CONTENT_HTML}}
+
+        <!-- 媒体浏览器弹窗 -->
+        <div id="media-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;" onclick="closeMediaModal()">
+            <button id="media-prev-btn" style="position: absolute; left: 20px; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 32px; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'" onclick="navigateMedia(-1, event)">&#10094;</button>
+            <div style="max-width: 80%; max-height: 80%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;" onclick="event.stopPropagation()">
+                <img id="modal-img" src="" style="display: none; max-width: 100%; max-height: 75vh; border-radius: 4px; object-fit: contain;">
+                <video id="modal-video" controls style="display: none; max-width: 100%; max-height: 75vh; border-radius: 4px;"></video>
+                <div id="media-controls-row" style="margin-top: 15px; display: flex; gap: 12px; align-items: center; justify-content: center;">
+                    <span id="media-title" style="color: #fff; font-size: 14px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.8); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+                    <button class="btn btn-primary" id="media-download-btn" style="padding: 4px 12px; font-size: 12px; height: 26px; border-radius: 4px;" data-i18n="downloadFile">下载文件</button>
+                </div>
+            </div>
+            <button id="media-next-btn" style="position: absolute; right: 20px; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 32px; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'" onclick="navigateMedia(1, event)">&#10095;</button>
+            <span style="position: absolute; top: 20px; right: 20px; color: #fff; font-size: 32px; font-weight: bold; cursor: pointer;" onclick="closeMediaModal()">&times;</span>
+        </div>
+
+        <!-- 文本浏览器弹窗 -->
+        <div id="text-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1001; justify-content: center; align-items: center;" onclick="closeTextModal()">
+            <div style="background: #fff; width: 85%; max-width: 700px; height: 75%; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; padding: 20px; box-sizing: border-box; position: relative;" onclick="event.stopPropagation()">
+                <h3 id="text-modal-title" style="margin: 0 0 12px 0; font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 40px;" data-i18n="textPreview">文本预览</h3>
+                <textarea id="text-modal-content" readonly style="flex: 1; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; outline: none; resize: none; font-family: monospace; background: #fafafa; margin-bottom: 12px; font-size: 13px; line-height: 1.5; color: #333;"></textarea>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button class="btn btn-outline" onclick="copyModalText()" data-i18n="copyText">一键复制</button>
+                    <button class="btn btn-primary" id="text-modal-download-btn" data-i18n="downloadText">下载文本</button>
+                    <button class="btn btn-outline" onclick="closeTextModal()" data-i18n="btnClose">关闭</button>
+                </div>
+                <span style="position: absolute; top: 15px; right: 20px; color: #999; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="closeTextModal()">&times;</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/locales/zh-CN.js" charset="utf-8"></script>
+    <script src="/assets/locales/en-US.js" charset="utf-8"></script>
+    <script src="/assets/js/i18n.js" charset="utf-8"></script>
+    <script>
+        function switchLang(lang) {
+            curLang = lang;
+            localStorage.setItem('app_lang', lang);
+            applyI18n();
+            initUserDisplay();
+            onItemCheckChange();
+        }
+
+        var currentPath = decodeURIComponent("{{ESCAPED_REL_PATH}}");
+        var hasPassword = {{HAS_PWD}};
+        var isRealNameMode = {{IS_REALNAME_MODE}};
+        var isReadOnly = {{IS_READONLY}};
+        
+        function getCookie(name) {
+            var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
+        var clientRealName = getCookie("user_real_name") || "";
+
+        function handleLogout() {
+            document.cookie = "user_real_name=; path=/; max-age=0";
+            document.cookie = "server_run_id=; path=/; max-age=0";
+            window.location.href = "/";
+        }
+
+        function initUserDisplay() {
+            if (isRealNameMode && clientRealName) {
+                var displaySpan = document.getElementById('user-display-name');
+                var logoutBtn = document.getElementById('btn-logout');
+                if (displaySpan) {
+                    displaySpan.innerText = t('currentUser') + clientRealName;
+                    displaySpan.style.display = "inline";
+                }
+                if (logoutBtn) logoutBtn.style.display = "inline";
+            }
+        }
+
+        function toggleTextArea() {
+            var el = document.getElementById('text-upload-container');
+            if (el.style.display === 'none') {
+                var d = new Date(), pad = n => n<10?'0'+n:n;
+                var defaultFilename = t('defaultTextFile')+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+'.txt';
+                document.getElementById('text-filename-input').value = defaultFilename;
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        }
+
+        function filterFiles(query) {
+            query = query.toLowerCase().trim();
+            document.querySelectorAll('.file-row').forEach(row => {
+                var a = row.querySelector('span.col-name a');
+                if(a && a.innerText !== t('goBack')) {
+                    row.style.display = a.innerText.toLowerCase().indexOf(query) !== -1 ? 'grid' : 'none';
+                }
+            });
+        }
+
+        function onItemCheckChange() {
+            var cbs = document.querySelectorAll('.item-checkbox');
+            var cnt = 0;
+            cbs.forEach(cb => {
+                var action = cb.closest('.file-row').querySelector('.col-action');
+                if(action) {
+                    var isPrivateItem = cb.classList.contains('private-checkbox');
+                    var isAdmin = getCookie('admin_password');
+                    var canWriteItem = false;
+                    
+                    if (isReadOnly && !isAdmin) {
+                        canWriteItem = false;
+                    } else {
+                        if (isRealNameMode) {
+                            if (isAdmin) {
+                                canWriteItem = true;
+                            } else {
+                                if (currentPath === "") {
+                                    canWriteItem = isPrivateItem;
+                                } else {
+                                    canWriteItem = true;
+                                }
+                            }
+                        } else {
+                            canWriteItem = true; 
+                        }
+                    }
+                    action.style.display = (cb.checked && canWriteItem) ? 'flex' : 'none';
+                }
+                if(cb.checked) cnt++;
+            });
+            var bar = document.getElementById('batch-action-bar');
+            if(cnt > 0) { bar.style.display = 'flex'; document.getElementById('selected-count').innerText = t('selectedCount', {count: cnt}); }
+            else { bar.style.display = 'none'; }
+        }
+
+        function toggleSelectAll(h) { document.querySelectorAll('.public-checkbox').forEach(c => c.checked = h.checked); onItemCheckChange(); }
+        var toggleSelectAllPrivate = (h) => { document.querySelectorAll('.private-checkbox').forEach(c => c.checked = h.checked); onItemCheckChange(); }
+        function selectAll(s) { document.querySelectorAll('.item-checkbox').forEach(c => c.checked = s); onItemCheckChange(); }
+        function invertSelection() { document.querySelectorAll('.item-checkbox').forEach(c => c.checked = !c.checked); onItemCheckChange(); }
+
+        function checkWriteAuth(targetPath) {
+            var path = targetPath || currentPath;
+            var isAdmin = getCookie('admin_password');
+            
+            if (isRealNameMode) {
+                if (isAdmin) return true;
+                if (path === "") return true; 
+                
+                if (path.indexOf(clientRealName + "/") === 0 || path === clientRealName) {
+                    return true;
+                }
+                alert(t('permDenied'));
+                return false;
+            } else {
+                if (hasPassword && !isAdmin) {
+                    alert(t('permDeniedAdmin'));
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        function handleCreateDir() {
+            var targetPath = currentPath;
+            if (currentPath === "" && isRealNameMode && !getCookie('admin_password')) {
+                targetPath = clientRealName;
+            }
+            if(!checkWriteAuth(targetPath)) return;
+            var dirName = prompt(t('promptNewFolder'));
+            if (!dirName || dirName.trim() === "") return;
+            var pwd = getCookie('admin_password') || "";
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/mkdir?name=' + encodeURIComponent(dirName.trim()) + '&path=' + encodeURIComponent(targetPath) + '&password=' + encodeURIComponent(pwd));
+            xhr.onload = () => { if(xhr.status == 200) location.reload(); else alert(t('createFailed') + xhr.responseText); };
+            xhr.send();
+        }
+
+        function handleBatchDownload() {
+            var paths = Array.from(document.querySelectorAll('.item-checkbox')).filter(c=>c.checked).map(c=>c.getAttribute('data-path').replace(/^\//,''));
+            if(paths.length > 0) window.location.href = '/zip?paths=' + encodeURIComponent(paths.join(','));
+        }
+
+        function handleBatchDelete() {
+            var paths = Array.from(document.querySelectorAll('.item-checkbox')).filter(c=>c.checked).map(c=>decodeURIComponent(c.getAttribute('data-path')));
+            if(paths.length === 0) return;
+            var pwd = getCookie('admin_password') || "";
+            
+            for (let i = 0; i < paths.length; i++) {
+                var cleanPath = paths[i].replace(/^\//, '');
+                if (!checkWriteAuth(cleanPath)) return;
+            }
+            
+            if(confirm(t('confirmBatchDelete', {count: paths.length}))) {
+                var btn = document.querySelector('#batch-action-bar button[onclick="handleBatchDelete()"]');
+                btn.innerText = t('deleting');
+                (async () => {
+                    for(let i = 0; i < paths.length; i++) {
+                        await new Promise(r => {
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('POST', '/delete?path=' + encodeURIComponent(paths[i]) + '&password=' + encodeURIComponent(pwd));
+                            xhr.onload = xhr.onerror = r; xhr.send();
+                        });
+                    }
+                    setTimeout(() => location.reload(), 800);
+                })();
+            }
+        }
+
+        function handleDelete(e, path) {
+            e.preventDefault(); e.stopPropagation();
+            var decoded = decodeURIComponent(path);
+            var cleanPath = decoded.replace(/^\//, '');
+            if(!checkWriteAuth(cleanPath)) return;
+            if(confirm(t('confirmDelete') + decoded)) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/delete?path=' + encodeURIComponent(decoded) + '&password=' + encodeURIComponent(getCookie('admin_password')||""));
+                xhr.onload = () => { if(xhr.status == 200) location.reload(); else alert(t('deleteFailed')+xhr.responseText); };
+                xhr.send();
+            }
+        }
+
+        function handleRename(e, path, curName) {
+            e.preventDefault(); e.stopPropagation();
+            var decoded = decodeURIComponent(path);
+            var cleanPath = decoded.replace(/^\//, '');
+            if(!checkWriteAuth(cleanPath)) return;
+            var newName = prompt(t('promptNewName'), curName);
+            if(!newName || newName.trim() === "" || newName.trim() === curName) return;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/rename?path=' + encodeURIComponent(decoded) + '&new_name=' + encodeURIComponent(newName.trim()) + '&password=' + encodeURIComponent(getCookie('admin_password')||""));
+            xhr.onload = () => { if(xhr.status == 200) location.reload(); else alert(t('renameFailed')+xhr.responseText); };
+            xhr.send();
+        }
+
+        var mediaPlaylist = [];
+        var activeMediaIndex = -1;
+
+        function buildMediaPlaylist() {
+            mediaPlaylist = [];
+            document.querySelectorAll('.col-name a[data-url]').forEach(a => {
+                if (a.getAttribute('data-img') === 'true' || a.getAttribute('data-video') === 'true' || a.getAttribute('data-audio') === 'true') {
+                    mediaPlaylist.push({
+                        url: a.getAttribute('data-url'),
+                        name: a.getAttribute('data-name'),
+                        isImg: a.getAttribute('data-img') === 'true',
+                        isAudio: a.getAttribute('data-audio') === 'true',
+                        isVideo: a.getAttribute('data-video') === 'true'
+                    });
+                }
+            });
+        }
+
+        function handleFileClick(e, el) {
+            var url = el.getAttribute('data-url');
+            var name = el.getAttribute('data-name');
+            var isImg = el.getAttribute('data-img') === 'true';
+            var isAudio = el.getAttribute('data-audio') === 'true';
+            var isVideo = el.getAttribute('data-video') === 'true';
+            var isText = el.getAttribute('data-text') === 'true';
+
+            if (isText) {
+                e.preventDefault();
+                openTextModal(url, name);
+                return false;
+            }
+
+            if (isImg || isVideo || isAudio) {
+                e.preventDefault();
+                buildMediaPlaylist();
+                activeMediaIndex = mediaPlaylist.findIndex(item => item.url === url);
+                showMediaInModal();
+                return false;
+            }
+            return true;
+        }
+
+        function showMediaInModal() {
+            if (activeMediaIndex < 0 || activeMediaIndex >= mediaPlaylist.length) return;
+            var item = mediaPlaylist[activeMediaIndex];
+            
+            document.getElementById('media-modal').style.display = 'flex';
+            
+            var img = document.getElementById('modal-img');
+            var vid = document.getElementById('modal-video');
+            var title = document.getElementById('media-title');
+            
+            img.style.display = 'none';
+            vid.style.display = 'none';
+            vid.pause();
+            vid.src = "";
+            
+            title.innerText = item.name;
+            document.getElementById('media-download-btn').onclick = function() {
+                var a = document.createElement('a');
+                a.href = item.url;
+                a.download = item.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+            
+            if (item.isImg) {
+                img.src = item.url;
+                img.style.display = 'block';
+            } else if (item.isVideo || item.isAudio) {
+                vid.src = item.url;
+                vid.style.display = 'block';
+                vid.play();
+            }
+
+            var prevBtn = document.getElementById('media-prev-btn');
+            var nextBtn = document.getElementById('media-next-btn');
+            if (mediaPlaylist.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+            }
+        }
+
+        function navigateMedia(dir, e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            if (mediaPlaylist.length === 0) return;
+            activeMediaIndex = (activeMediaIndex + dir + mediaPlaylist.length) % mediaPlaylist.length;
+            showMediaInModal();
+        }
+
+        function closeMediaModal() {
+            document.getElementById('media-modal').style.display='none';
+            document.getElementById('modal-img').src='';
+            var vid = document.getElementById('modal-video'); vid.pause(); vid.src='';
+        }
+
+        function openTextModal(url, filename) {
+            document.getElementById('text-modal').style.display = 'flex';
+            document.getElementById('text-modal-title').innerText = t('textPreview') + " - " + filename;
+            var contentArea = document.getElementById('text-modal-content');
+            contentArea.value = t('loadingText');
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    contentArea.value = xhr.responseText;
+                } else {
+                    contentArea.value = t('loadFailed') + xhr.status;
+                }
+            };
+            xhr.onerror = function() {
+                contentArea.value = t('netError');
+            };
+            xhr.send();
+
+            document.getElementById('text-modal-download-btn').onclick = function() {
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+        }
+
+        function closeTextModal() {
+            document.getElementById('text-modal').style.display = 'none';
+            document.getElementById('text-modal-content').value = "";
+        }
+
+        function copyModalText() {
+            var contentArea = document.getElementById('text-modal-content');
+            contentArea.select();
+            contentArea.setSelectionRange(0, 99999);
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    alert(t('copySuccess'));
+                } else {
+                    alert(t('copyFailed'));
+                }
+            } catch (err) {
+                alert(t('copyFailed'));
+            }
+        }
+
+        window.addEventListener('keydown', function(e) {
+            var mediaModal = document.getElementById('media-modal');
+            var textModal = document.getElementById('text-modal');
+            if (mediaModal && mediaModal.style.display === 'flex') {
+                if (e.key === 'ArrowLeft') {
+                    navigateMedia(-1, e);
+                } else if (e.key === 'ArrowRight') {
+                    navigateMedia(1, e);
+                } else if (e.key === 'Escape') {
+                    closeMediaModal();
+                }
+            } else if (textModal && textModal.style.display === 'flex') {
+                if (e.key === 'Escape') {
+                    closeTextModal();
+                }
+            }
+        });
+
+        window.addEventListener('dragover', e => { e.preventDefault(); document.body.classList.add('drag-hover'); });
+        window.addEventListener('dragleave', e => { e.preventDefault(); document.body.classList.remove('drag-hover'); });
+        window.addEventListener('drop', async e => {
+            e.preventDefault(); document.body.classList.remove('drag-hover');
+            var targetPath = currentPath;
+            if (currentPath === "" && isRealNameMode && !getCookie('admin_password')) {
+                targetPath = clientRealName;
+            }
+            if(!checkWriteAuth(targetPath)) return;
+            var items = e.dataTransfer.items;
+            if(items && items.length > 0) {
+                let filesToUpload = [];
+                async function traverse(item, path) {
+                    if (item.isFile) {
+                        let file = await new Promise((resolve) => item.file(resolve));
+                        filesToUpload.push({ file: file, relPath: path + file.name });
+                    } else if (item.isDirectory) {
+                        let dirReader = item.createReader();
+                        let entries = [];
+                        let readEntries = async () => {
+                            let results = await new Promise(r => dirReader.readEntries(r));
+                            if (results.length > 0) { entries = entries.concat(results); await readEntries(); }
+                        };
+                        await readEntries();
+                        for (let i = 0; i < entries.length; i++) await traverse(entries[i], path + item.name + "/");
+                    }
+                }
+                for (let i=0; i<items.length; i++) {
+                    let item = items[i].webkitGetAsEntry();
+                    if(item) await traverse(item, "");
+                }
+                if (filesToUpload.length > 0) await uploadBatch(filesToUpload);
+            }
+        });
+
+        function uploadDirectory() {
+            var targetPath = currentPath;
+            if (currentPath === "" && isRealNameMode && !getCookie('admin_password')) {
+                targetPath = clientRealName;
+            }
+            if(!checkWriteAuth(targetPath)) return;
+            var files = document.getElementById('dir-input').files;
+            if(!files || files.length === 0) return;
+            let fList = [];
+            for(let i=0; i<files.length; i++) fList.push({file: files[i], relPath: files[i].webkitRelativePath || files[i].name});
+            uploadBatch(fList);
+        }
+
+        function uploadFile() {
+            var targetPath = currentPath;
+            if (currentPath === "" && isRealNameMode && !getCookie('admin_password')) {
+                targetPath = clientRealName;
+            }
+            if(!checkWriteAuth(targetPath)) return;
+            var files = document.getElementById('file-input').files;
+            if(!files || files.length === 0) return;
+            let fList = [];
+            for(let i=0; i<files.length; i++) fList.push({file: files[i], relPath: files[i].name});
+            uploadBatch(fList);
+        }
+
+        async function uploadBatch(fList) {
+            var concurrency = 4;
+            var pwd = getCookie('admin_password') || "";
+            var btn = document.getElementById('upload-btn');
+            var progContainer = document.getElementById('upload-progress-container');
+            var progBar = document.getElementById('upload-progress-bar');
+            var progPercent = document.getElementById('upload-progress-percent');
+            var progFilename = document.getElementById('upload-progress-filename');
+            var progStatus = document.getElementById('upload-progress-status');
+            
+            progContainer.style.display = 'block';
+            
+            var total = fList.length;
+            var completed = 0;
+            
+            function updateProgress() {
+                var pct = Math.round(completed / total * 100);
+                progBar.style.width = pct + '%';
+                progPercent.innerText = pct + '%';
+                progStatus.innerText = t('uploadProgress', {completed: completed, total: total});
+                progFilename.innerText = '' + completed + '/' + total;
+            }
+            
+            updateProgress();
+            
+            async function uploadOne(item) {
+                var relDir = "", lastSlash = item.relPath.lastIndexOf('/');
+                if(lastSlash !== -1) relDir = item.relPath.substring(0, lastSlash);
+                
+                var targetPath = currentPath;
+                if (currentPath === "") {
+                    if (isRealNameMode && !getCookie('admin_password')) {
+                        targetPath = clientRealName;
+                    }
+                }
+                if (relDir !== "") {
+                    targetPath = targetPath === "" ? relDir : (targetPath + "/" + relDir);
+                }
+                
+                await new Promise(function(r) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/upload?name='+encodeURIComponent(item.file.name)+'&path='+encodeURIComponent(targetPath)+'&password='+encodeURIComponent(pwd));
+                    xhr.onload = xhr.onerror = function() {
+                        completed++;
+                        updateProgress();
+                        r();
+                    };
+                    xhr.send(item.file);
+                });
+            }
+            
+            async function worker() {
+                while (fList.length > 0) {
+                    var item = fList.shift();
+                    btn.innerText = t('uploading') + ' (' + completed + '/' + total + ')';
+                    await uploadOne(item);
+                }
+            }
+            
+            var workers = [];
+            var poolSize = Math.min(concurrency, total);
+            for (var i = 0; i < poolSize; i++) {
+                workers.push(worker());
+            }
+            await Promise.all(workers);
+            
+            progStatus.innerText = t('uploadDone');
+            btn.innerHTML = '&#9989; ' + t('btnDone');
+            setTimeout(function() {
+                progContainer.style.display = 'none';
+                location.reload();
+            }, 800);
+        }
+
+        function uploadText() {
+            var targetPath = currentPath;
+            if (currentPath === "" && isRealNameMode && !getCookie('admin_password')) {
+                targetPath = clientRealName;
+            }
+            if(!checkWriteAuth(targetPath)) return;
+            var content = document.getElementById('text-input').value;
+            if(!content) return alert(t('textEmpty'));
+            var filename = document.getElementById('text-filename-input').value.trim();
+            if(!filename) return alert(t('filenameEmpty'));
+            var btn = document.getElementById('upload-text-btn'); btn.innerText=t('uploading');
+            var blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload?name='+encodeURIComponent(filename)+'&path='+encodeURIComponent(targetPath)+'&password='+encodeURIComponent(getCookie('admin_password')||""));
+            xhr.onload = () => { if(xhr.status==200) location.reload(); else { alert('Error:'+xhr.responseText); btn.innerText=t('btnGenerateUpload'); }};
+            xhr.send(blob);
+        }
+
+        function toggleAdminMode() {
+            var pwdInput = document.getElementById('admin-pwd-input'), adminBtn = document.getElementById('admin-btn');
+            if(getCookie('admin_password')) {
+                document.cookie = "admin_password=; path=/; max-age=0";
+                location.reload(); return;
+            }
+            if(pwdInput.style.display === 'none') {
+                 pwdInput.style.display = 'block'; 
+                 pwdInput.focus(); 
+                 adminBtn.setAttribute('data-i18n', 'confirmBtn');
+                 adminBtn.innerText = t('confirmBtn'); } 
+            else {
+                var pwd = pwdInput.value; if(!pwd) return;
+                var xhr = new XMLHttpRequest(); xhr.open('POST', '/verify_password?password='+encodeURIComponent(pwd));
+                xhr.onload = () => {
+                    if(xhr.status==200) { document.cookie = "admin_password=" + encodeURIComponent(pwd) + "; path=/"; location.reload(); }
+                    else { pwdInput.value = ""; pwdInput.focus(); }
+                }; xhr.send();
+            }
+        }
+
+        var currentSort = { column: 'name', dir: 'asc' };
+
+        function initSortableHeaders() {
+            document.querySelectorAll('.list-header').forEach(function(header) {
+                var cols = [
+                    { sel: '.col-name', key: 'name' },
+                    { sel: '.col-date', key: 'date' },
+                    { sel: '.col-type', key: 'type' },
+                    { sel: '.col-size', key: 'size' }
+                ];
+                cols.forEach(function(c) {
+                    var el = header.querySelector(c.sel);
+                    if (el && !el.classList.contains('sortable')) {
+                        el.classList.add('sortable');
+                        el.innerHTML += ' <span class="sort-icon"></span>';
+                        el.onclick = function() { toggleSort(c.key); };
+                    }
+                });
+            });
+        }
+
+        function toggleSort(column) {
+            if (currentSort.column === column) {
+                currentSort.dir = (currentSort.dir === 'asc') ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.dir = 'asc';
+            }
+            applySort();
+        }
+
+        function applySort() {
+            document.querySelectorAll('.file-list').forEach(function(listContainer) {
+                var header = listContainer.querySelector('.list-header');
+                if (!header) return;
+
+                var cols = ['name', 'date', 'type', 'size'];
+                cols.forEach(function(col) {
+                    var iconEl = header.querySelector('.col-' + col + ' .sort-icon');
+                    if (iconEl) {
+                        iconEl.innerText = (currentSort.column === col) ? (currentSort.dir === 'asc' ? '▲' : '▼') : '';
+                    }
+                });
+
+                var rows = Array.from(listContainer.querySelectorAll('.file-row')).filter(function(row) {
+                    return !row.querySelector('a[data-i18n="goBack"]');
+                });
+
+                rows.sort(function(a, b) {
+                    var isDirA = a.getAttribute('data-is-dir') === 'true';
+                    var isDirB = b.getAttribute('data-is-dir') === 'true';
+
+                    if (isDirA !== isDirB) return isDirA ? -1 : 1;
+
+                    var valA, valB;
+                    if (currentSort.column === 'name') {
+                        valA = a.getAttribute('data-name') || '';
+                        valB = b.getAttribute('data-name') || '';
+                        var res = valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
+                        return currentSort.dir === 'asc' ? res : -res;
+                    } else if (currentSort.column === 'date') {
+                        valA = parseInt(a.querySelector('.col-date').getAttribute('data-mtime') || '0', 10);
+                        valB = parseInt(b.querySelector('.col-date').getAttribute('data-mtime') || '0', 10);
+                        return currentSort.dir === 'asc' ? (valA - valB) : (valB - valA);
+                    } else if (currentSort.column === 'type') {
+                        valA = a.querySelector('.col-type').getAttribute('data-type') || '';
+                        valB = b.querySelector('.col-type').getAttribute('data-type') || '';
+                        var res = valA.localeCompare(valB);
+                        return currentSort.dir === 'asc' ? res : -res;
+                    } else if (currentSort.column === 'size') {
+                        valA = parseInt(a.querySelector('.col-size').getAttribute('data-bytes') || '0', 10);
+                        valB = parseInt(b.querySelector('.col-size').getAttribute('data-bytes') || '0', 10);
+                        return currentSort.dir === 'asc' ? (valA - valB) : (valB - valA);
+                    }
+                    return 0;
+                });
+
+                rows.forEach(function(row) { listContainer.appendChild(row); });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            applyI18n();
+            initUserDisplay();
+            initSortableHeaders();
+        });
+    </script>
+</body>
+</html>

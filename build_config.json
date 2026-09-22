@@ -1,0 +1,31 @@
+{
+  "toolchain_root": "M:\\C++",
+  "src_dir": ".",
+  "build_dir": "build",
+  "dist_dir": "dist",
+  "dist_dir_x86": "dist/x86",
+  "dist_dir_x64": "dist/x64",
+  "out_exe_pattern": "NB_LANShare_{ARCH}.exe",
+  "out_7z_pattern": "NB_LANShare_{ARCH}_release.7z",
+  "build_x86": true,
+  "build_x64": true,
+  "use_upx": false,
+  "use_pack": false,
+  "threads": 8,
+  "source_files": [
+    "src/main.cpp",
+    "src/util.cpp",
+    "src/lang.cpp",
+    "src/qrcode.cpp",
+    "src/webtemplates.cpp",
+    "src/http_server.cpp",
+    "src/http_routes.cpp",
+    "src/sys_integration.cpp",
+    "src/gui.cpp"
+  ],
+  "pack_mappings": [
+    { "src": "templates", "dst": "templates" },
+    { "src": "assets", "dst": "assets" },
+    { "src": "themes/logo.bmp", "dst": "themes/logo.bmp" }
+  ]
+}

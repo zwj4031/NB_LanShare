@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title data-i18n="title">实名文件提交系统 - 登记</title>
+    <style>
+        :root { --primary: #0078D4; --bg: #FAFAFA; --text: #323130; --border: #EDEBE9; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: #fff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); width: 100%; max-width: 360px; text-align: center; border: 1px solid var(--border); box-sizing: border-box; position: relative; }
+        .login-card h2 { margin: 0 0 12px 0; color: var(--primary); font-size: 22px; font-weight: 600; }
+        .login-card p { margin: 0 0 24px 0; color: #605E5C; font-size: 14px; }
+        .login-card input { width: 100%; padding: 10px 14px; font-size: 14px; border: 1px solid var(--border); border-radius: 6px; outline: none; box-sizing: border-box; margin-bottom: 20px; transition: border-color 0.2s; }
+        .login-card input:focus { border-color: var(--primary); }
+        .btn { width: 100%; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: var(--primary); color: #fff; transition: background 0.2s; }
+        .btn:hover { background: #005A9E; }
+        .lang-select { position: absolute; top: 12px; right: 12px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; background: #fff; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <select class="lang-select" id="lang-switch" onchange="switchLang(this.value)">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+        </select>
+        <h2 data-i18n="header">实名文件提交系统</h2>
+        <p data-i18n="subtitle">请输入姓名 (系统将自动获取您的计算机名)</p>
+        <input type="text" id="real-name-input" data-i18n-placeholder="placeholder" placeholder="例如：张三..." onkeydown="if(event.key==='Enter') enterSystem()">
+        <button class="btn" onclick="enterSystem()" data-i18n="btnEnter">进入系统</button>
+    </div>
+
+    <script src="/assets/locales/zh-CN.js" charset="utf-8"></script>
+    <script src="/assets/locales/en-US.js" charset="utf-8"></script>
+    <script src="/assets/js/i18n.js" charset="utf-8"></script>
+    <script>
+        applyI18n();
+
+        function enterSystem() {
+            var name = document.getElementById('real-name-input').value.trim();
+            if (!name) { alert(t('msgEmptyName')); return; }
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/bind_name?name=' + encodeURIComponent(name));
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    var finalName = xhr.responseText.trim();
+                    document.cookie = "user_real_name=" + encodeURIComponent(finalName) + "; path=/";
+                    document.cookie = "server_run_id=" + encodeURIComponent("{{SERVER_RUN_ID}}") + "; path=/";
+                    window.location.href = "/";
+                } else if(xhr.status == 403) {
+                    alert(t('msgNameBound'));
+                    document.getElementById('real-name-input').value = "";
+                } else {
+                    alert(t('msgError') + xhr.responseText);
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+</html>

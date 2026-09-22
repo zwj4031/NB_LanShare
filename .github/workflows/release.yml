@@ -1,0 +1,106 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Bump type (auto = infer from commit message [major]/[minor])"
+        required: false
+        default: auto
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: version
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $bump = 'patch'
+          if ("${{ github.event_name }}" -eq 'workflow_dispatch') {
+            $bump = "${{ inputs.bump }}"
+            if ($bump -eq '' -or $bump -eq 'auto') { $bump = 'patch' }
+          } else {
+            $msg = git log -1 --pretty=%B
+            if ($msg -match '\[major\]')   { $bump = 'major' }
+            elseif ($msg -match '\[minor\]'){ $bump = 'minor' }
+          }
+
+          $max = [version]'1.0.0'
+          foreach ($t in (git tag --list 'v*')) {
+            if ($t -match '^v(\d+)\.(\d+)\.(\d+)$') {
+              $v = [version]"$($Matches[1]).$($Matches[2]).$($Matches[3])"
+              if ($v -gt $max) { $max = $v }
+            }
+          }
+
+          while ($true) {
+            switch ($bump) {
+              'major' { $nv = [version]"$($max.Major+1).0.0" }
+              'minor' { $nv = [version]"$($max.Major).$($max.Minor+1).0" }
+              default { $nv = [version]"$($max.Major).$($max.Minor).$($max.Build+1)" }
+            }
+            if (-not (git rev-parse -q --verify "refs/tags/v$nv")) { break }
+            $max  = $nv
+            $bump = 'patch'
+          }
+
+          Write-Host "Next version: v$nv (bump=$bump)"
+          "version=$nv" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "tag=v$nv"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Build x86 & x64 (nb_build_gui.py toolchain)
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\build_ci.ps1" -Version "${{ steps.version.outputs.version }}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe-${{ steps.version.outputs.version }}-${{ github.run_number }}
+          path: |
+            dist/x86/NB_LANShare_x86.exe
+            dist/x64/NB_LANShare_x64.exe
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: NB_LANShare v${{ steps.version.outputs.version }}
+          body: |
+            **自动构建发布 (Automated Release)**
+
+            - Commit: `${{ github.sha }}`
+            - Version: `${{ steps.version.outputs.version }}`
+            - x86 (WinXP Subsystem 5.01): `NB_LANShare_x86.exe`
+            - x64 (WinXP Subsystem 5.02): `NB_LANShare_x64.exe`
+
+            版本号自动递增规则：提交信息含 `[major]` / `[minor]` 分别提升主/次版本号，否则递增补丁号。
+          files: |
+            dist/x86/NB_LANShare_x86.exe
+            dist/x64/NB_LANShare_x64.exe
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,17 @@
+#include <windows.h>
+
+#define IDR_MAIN_HTML   101
+#define IDR_LOGIN_HTML  102
+#define IDR_I18N_JS     103
+#define IDR_ZHCN_JS     104
+#define IDR_ENUS_JS     105
+#define IDR_LOGO_BMP    106
+
+MAINICON ICON "main.ico"
+
+IDR_MAIN_HTML   RCDATA "..\\templates\\main.html"
+IDR_LOGIN_HTML  RCDATA "..\\templates\\login.html"
+IDR_I18N_JS     RCDATA "..\\assets\\js\\i18n.js"
+IDR_ZHCN_JS     RCDATA "..\\assets\\locales\\zh-CN.js"
+IDR_ENUS_JS     RCDATA "..\\assets\\locales\\en-US.js"
+IDR_LOGO_BMP    BITMAP "..\\themes\\logo.bmp"
