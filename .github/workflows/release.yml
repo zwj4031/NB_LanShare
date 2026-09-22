@@ -34,42 +34,51 @@ jobs:
 
       - name: Compute next version
         id: version
-        shell: pwsh
+        shell: bash
         run: |
-          $ErrorActionPreference = 'Stop'
+          set -euo pipefail
 
-          $bump = 'patch'
-          if ("${{ github.event_name }}" -eq 'workflow_dispatch') {
-            $bump = "${{ inputs.bump }}"
-            if ($bump -eq '' -or $bump -eq 'auto') { $bump = 'patch' }
-          } else {
-            $msg = git log -1 --pretty=%B
-            if ($msg -match '\[major\]')   { $bump = 'major' }
-            elseif ($msg -match '\[minor\]'){ $bump = 'minor' }
-          }
+          bump="patch"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            bump="${{ inputs.bump }}"
+            [[ "$bump" == "" || "$bump" == "auto" ]] && bump="patch"
+          else
+            msg=$(git log -1 --pretty=%B)
+            case "$msg" in
+              *"[major]"*) bump="major" ;;
+              *"[minor]"*) bump="minor" ;;
+            esac
+          fi
 
-          $max = [version]'1.0.0'
-          foreach ($t in (git tag --list 'v*')) {
-            if ($t -match '^v(\d+)\.(\d+)\.(\d+)$') {
-              $v = [version]"$($Matches[1]).$($Matches[2]).$($Matches[3])"
-              if ($v -gt $max) { $max = $v }
-            }
-          }
+          max_major=0; max_minor=0; max_patch=0
+          git tag --list 'v*' > /tmp/nbls_vtags.txt || true
+          while IFS= read -r t; do
+            [[ "$t" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || continue
+            mj=${BASH_REMATCH[1]}; mn=${BASH_REMATCH[2]}; pt=${BASH_REMATCH[3]}
+            if (( 10#$mj > 10#$max_major )) \
+              || { (( 10#$mj == 10#$max_major )) && { (( 10#$mn > 10#$max_minor )) || { (( 10#$mn == 10#$max_minor )) && (( 10#$pt > 10#$max_patch )); }; }; }; then
+              max_major=$mj; max_minor=$mn; max_patch=$pt
+            fi
+          done < /tmp/nbls_vtags.txt
 
-          while ($true) {
-            switch ($bump) {
-              'major' { $nv = [version]"$($max.Major+1).0.0" }
-              'minor' { $nv = [version]"$($max.Major).$($max.Minor+1).0" }
-              default { $nv = [version]"$($max.Major).$($max.Minor).$($max.Build+1)" }
-            }
-            if (-not (git rev-parse -q --verify "refs/tags/v$nv")) { break }
-            $max  = $nv
-            $bump = 'patch'
-          }
+          if [[ "$max_major$max_minor$max_patch" == "000" ]]; then
+            nv="1.0.0"
+          else
+            while :; do
+              case "$bump" in
+                major) nv="$((max_major + 1)).0.0" ;;
+                minor) nv="$max_major.$((max_minor + 1)).0" ;;
+                *)     nv="$max_major.$max_minor.$((max_patch + 1))" ;;
+              esac
+              IFS=. read -r cmj cmn cpt <<< "$nv"
+              if ! git rev-parse -q --verify "refs/tags/v$nv" >/dev/null 2>&1; then break; fi
+              max_major=$cmj; max_minor=$cmn; max_patch=$cpt; bump="patch"
+            done
+          fi
 
-          Write-Host "Next version: v$nv (bump=$bump)"
-          "version=$nv" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "tag=v$nv"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          echo "Next version: v$nv (bump=$bump)"
+          echo "version=$nv" >> "$GITHUB_OUTPUT"
+          echo "tag=v$nv"    >> "$GITHUB_OUTPUT"
 
       - name: Build x86 & x64 (nb_build_gui.py toolchain)
         shell: pwsh
