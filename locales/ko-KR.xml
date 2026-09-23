@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Locale>
+    <!-- Fonts for ko-KR -->
+    <Font shared="true" id="14" size="14" name="Malgun Gothic" default="true" />
+    <Font shared="true" id="16b" size="16" name="Malgun Gothic" bold="true"/>
+    <Font shared="true" id="sym" size="16" name="Segoe MDL2 Assets"/>
+
+    <!-- UI 텍스트 요소 -->
+    <MultiLanguage id="title_text" value="로컬 네트워크 초고속 파일/폴더 공유기" />
+    <MultiLanguage id="lbl_share_path" value="공유 경로:" />
+    <MultiLanguage id="btn_select_file" value="파일 선택" />
+    <MultiLanguage id="btn_select_dir" value="폴더 선택" />
+    <MultiLanguage id="lbl_service_port" value="서비스 포트:" />
+    <MultiLanguage id="lbl_local_ip" value="로컬 IP:" />
+    <MultiLanguage id="lbl_admin_password" value="관리 비밀번호:" />
+    <MultiLanguage id="edit_password_prompt" value="비밀번호 없이 사용하려면 비워둠" />
+    <MultiLanguage id="lbl_collect_mode" value="수집 모드:" />
+    <MultiLanguage id="chk_realname_mode" value="실명 제출 모드 활성화 (조회 및 수정 방지)" />
+    <MultiLanguage id="btn_start_share" value="공유 시작" />
+    <MultiLanguage id="btn_show_qr" value="QR 코드 보기" />
+    <MultiLanguage id="btn_share_text" value="텍스트 공유" />
+    <MultiLanguage id="btn_more_config" value="추가 설정" />
+    <MultiLanguage id="lbl_run_log" value="실시간 실행 로그" />
+    <MultiLanguage id="lbl_qr_title" value="로컬 네트워크 공유 QR 코드" />
+    <MultiLanguage id="lbl_share_path_val" value="공유 경로: -" />
+    <MultiLanguage id="btn_share_url_val" value="공유 URL: -" />
+    <MultiLanguage id="btn_copy_link" value="링크 복사" />
+    <MultiLanguage id="btn_edit_text" value="텍스트 편집" />
+    <MultiLanguage id="btn_back_main" value="메인 화면으로" />
+    <MultiLanguage id="lbl_share_new_text" value="새 텍스트 내용 공유" />
+    <MultiLanguage id="btn_generate_qr" value="QR 코드 생성" />
+    <MultiLanguage id="btn_cancel" value="취소" />
+    <MultiLanguage id="lbl_more_config_title" value="추가 설정" />
+    <MultiLanguage id="lbl_context_menu" value="우클릭 메뉴:" />
+    <MultiLanguage id="lbl_status_uninstalled" value="설치되지 않음" />
+    <MultiLanguage id="btn_install" value="설치" />
+    <MultiLanguage id="lbl_boot_startup" value="시작 프로그램:" />
+    <MultiLanguage id="lbl_status_unset" value="설정되지 않음" />
+    <MultiLanguage id="btn_set" value="설정" />
+    <MultiLanguage id="chk_hide_startup" value="시작 시 숨기기" />
+    <MultiLanguage id="lbl_shortcut" value="바로가기:" />
+    <MultiLanguage id="btn_create_desktop_shortcut" value="바탕화면에 원클릭 공유 바로가기 생성" />
+    <MultiLanguage id="btn_copy_pe_cmd" value="PE 우클릭 스크립트 복사" />
+    <MultiLanguage id="btn_copy_pe_startup" value="PE 시작 스크립트 복사" />
+    <MultiLanguage id="btn_back" value="뒤로" />
+
+    <!-- UI_LANShare\main.lua 동적 번역 -->
+     <MultiLanguage id="btn_start_share" value="공유 시작" />
+    <MultiLanguage id="btn_stop_share" value="공유 중지" />
+    <MultiLanguage id="status_not_running" value="실행 중이지 않음" />
+    <MultiLanguage id="status_sharing_active" value="공유 중... 포트: " />
+    <MultiLanguage id="log_server_closed" value="공유 서버가 종료되었습니다." />
+    <MultiLanguage id="log_server_started" value="서버가 성공적으로 시작되었습니다!" />
+    <MultiLanguage id="log_share_url" value="로컬 네트워크 공유 주소: " />
+    <MultiLanguage id="msg_tip_title" value="알림" />
+    <MultiLanguage id="msg_select_target_first" value="공유할 파일이나 폴더를 먼저 선택하거나 입력해 주세요!" />
+    <MultiLanguage id="msg_port_bind_failed" value="서비스 포트 바인딩 실패: " />
+    <MultiLanguage id="dlg_select_file" value="공유할 파일 선택" />
+    <MultiLanguage id="dlg_all_files" value="모든 파일|*.*" />
+    <MultiLanguage id="status_file_loaded" value="파일 로드됨: " />
+    <MultiLanguage id="dlg_select_dir" value="공유할 폴더 선택" />
+    <MultiLanguage id="status_dir_loaded" value="폴더 로드됨: " />
+    <MultiLanguage id="log_ip_switched" value="로컬 수신 IP가 다음으로 전환되었습니다: " />
+
+    <!-- 추가 설정 및 시스템 통합 -->
+    <MultiLanguage id="lbl_status_installed" value="설치됨" />
+    <MultiLanguage id="lbl_status_uninstalled" value="설치되지 않음" />
+    <MultiLanguage id="lbl_status_set" value="설정됨" />
+    <MultiLanguage id="lbl_status_unset" value="설정되지 않음" />
+    <MultiLanguage id="btn_install" value="설치" />
+    <MultiLanguage id="btn_uninstall" value="제거" />
+    <MultiLanguage id="btn_set" value="설정" />
+    <MultiLanguage id="btn_cancel" value="취소" />
+    <MultiLanguage id="status_context_uninstalled" value="우클릭 메뉴가 성공적으로 제거되었습니다!" />
+    <MultiLanguage id="registry_menu_name" value="NB 로컬 네트워크 초고속 공유" />
+    <MultiLanguage id="status_context_registered" value="우클릭 메뉴가 성공적으로 등록되었습니다!" />
+    <MultiLanguage id="shortcut_filename" value="NB 로컬 네트워크 원클릭 공유" />
+    <MultiLanguage id="status_shortcut_created" value="바탕화면 바로가기가 성공적으로 생성되었습니다!" />
+    <MultiLanguage id="msg_success_title" value="성공" />
+    <MultiLanguage id="msg_shortcut_success_desc" value="바탕화면에 바로가기를 성공적으로 생성했습니다:{\n}" />
+    <MultiLanguage id="status_shortcut_failed" value="바로가기 생성 실패." />
+    <MultiLanguage id="msg_shortcut_failed_desc" value="바로가기 생성에 실패했습니다. 수동으로 생성해 주세요." />
+    <MultiLanguage id="status_startup_deleted" value="자동 실행 항목이 성공적으로 삭제되었습니다!" />
+    <MultiLanguage id="status_startup_set" value="부팅 시 자동 실행이 설정되었습니다!" />
+    <MultiLanguage id="msg_startup_hide_desc" value="자동 실행 시 숨김으로 설정되었습니다. 언제든지 인터페이스를 열 수 있도록 바탕화면에 바로가기를 만드는 것을 권장합니다.{\n}{\n}지금 바로 바탕화면에 바로가기를 생성하시겠습니까?" />
+    <MultiLanguage id="status_pe_cmd_copied" value="PE 우클릭 스크립트 복사됨!" />
+    <MultiLanguage id="msg_pe_cmd_copied_desc" value="PE 우클릭 스크립트가 클립보드에 성공적으로 복사되었습니다!" />
+    <MultiLanguage id="status_pe_startup_copied" value="PE 자동 실행 스크립트 복사됨!" />
+    <MultiLanguage id="msg_pe_startup_copied_desc" value="PE 자동 실행 스크립트(현재 포트, 비밀번호, 공유 경로 포함)가 성공적으로 복사되었습니다!" />
+    <MultiLanguage id="msg_error_title" value="오류" />
+
+    <!-- 명령줄 도움말 -->
+    <MultiLanguage id="txt_cmd_help_desc" value="[명령줄 매개변수 설명]{\n}-port <포트>    : 공유 서비스 포트 지정 (기본값 8845){\n}-pwd <비밀번호> : 관리 비밀번호 설정, 보안 보호{\n}-dir <폴더 경로> : 시작 시 지정된 폴더 자동 로드 및 공유{\n}-file <파일 경로>: 시작 시 지정된 파일 자동 로드 및 공유{\n}-hide           : 시작 시 인터페이스 숨김, 백그라운드 공유{\n}-min            : 시작 시 시스템 트레이로 최소화" />
+
+    <!-- QR 및 유틸리티 (UI_LANShare\utils_qr.lua) -->
+    <MultiLanguage id="lbl_status_prefix" value="상태: " />
+    <MultiLanguage id="status_qr_closed" value="공유 QR 코드가 닫혔습니다." />
+    <MultiLanguage id="status_link_copied" value="공유 링크가 클립보드에 복사되었습니다!" />
+    <MultiLanguage id="msg_server_not_started" value="공유 서비스가 시작되지 않았습니다! 먼저 '공유 시작'을 클릭해 주세요." />
+    <MultiLanguage id="lbl_qr_title" value="로컬 네트워크 공유 QR 코드" />
+    <MultiLanguage id="status_qr_reshown" value="QR 코드가 다시 표시되었습니다." />
+    <MultiLanguage id="status_typing_text" value="공유 텍스트 입력 중..." />
+    <MultiLanguage id="status_text_canceled" value="텍스트 입력이 취소되었습니다." />
+    <MultiLanguage id="msg_input_invalid_text" value="유효한 텍스트 내용을 입력해 주세요!" />
+    <MultiLanguage id="lbl_qr_text_title" value="텍스트 공유 QR 코드" />
+    <MultiLanguage id="status_qr_text_generated" value="텍스트 공유 QR 코드가 생성되었습니다." />
+    <MultiLanguage id="lbl_modal_text_share" value="현재 공유: 사용자 정의 일반 텍스트" />
+    <MultiLanguage id="lbl_modal_text_size" value="텍스트 크기: " />
+    <MultiLanguage id="lbl_modal_bytes" value=" 바이트" />
+    <MultiLanguage id="lbl_modal_path_prefix" value="공유 경로: " />
+    <MultiLanguage id="lbl_modal_url_prefix" value="공유 URL: " />
+</Locale>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Locale>
+    <!-- Fonts for en-US -->
+    <Font shared="true" id="14" size="14" name="Segoe UI" default="true" />
+    <Font shared="true" id="16b" size="16" name="Segoe UI" bold="true"/>
+    <Font shared="true" id="sym" size="16" name="Segoe MDL2 Assets"/>
+
+    <!-- UI Text Elements -->
+    <MultiLanguage id="title_text" value="LAN Files Quick Sharing Tool" />
+    <MultiLanguage id="lbl_share_path" value="Share Path:" />
+    <MultiLanguage id="btn_select_file" value="Select File" />
+    <MultiLanguage id="btn_select_dir" value="Select Folder" />
+    <MultiLanguage id="lbl_service_port" value="Port:" />
+    <MultiLanguage id="lbl_local_ip" value="Local IP:" />
+    <MultiLanguage id="lbl_admin_password" value="Password:" />
+    <MultiLanguage id="edit_password_prompt" value="Leave blank for no password" />
+    <MultiLanguage id="lbl_collect_mode" value="Collect Mode:" />
+    <MultiLanguage id="chk_realname_mode" value="Enable real-name submission (Read &amp; Edit protected)" />
+    <MultiLanguage id="btn_start_share" value="Start Share" />
+    <MultiLanguage id="btn_show_qr" value="Show QR Code" />
+    <MultiLanguage id="btn_share_text" value="Share Text" />
+    <MultiLanguage id="btn_more_config" value="More Config" />
+    <MultiLanguage id="lbl_run_log" value="Real-time Running Log" />
+    <MultiLanguage id="lbl_qr_title" value="LAN Share QR Code" />
+    <MultiLanguage id="lbl_share_path_val" value="Share Path: -" />
+    <MultiLanguage id="btn_share_url_val" value="Share URL: -" />
+    <MultiLanguage id="btn_copy_link" value="Copy Link" />
+    <MultiLanguage id="btn_edit_text" value="Edit Text" />
+    <MultiLanguage id="btn_back_main" value="Back to Main" />
+    <MultiLanguage id="lbl_share_new_text" value="Share New Text Content" />
+    <MultiLanguage id="btn_generate_qr" value="Generate QR" />
+    <MultiLanguage id="btn_cancel" value="Cancel" />
+    <MultiLanguage id="lbl_more_config_title" value="More Configurations" />
+    <MultiLanguage id="lbl_context_menu" value="Context Menu:" />
+    <MultiLanguage id="lbl_status_uninstalled" value="Not Installed" />
+    <MultiLanguage id="btn_install" value="Install" />
+    <MultiLanguage id="lbl_boot_startup" value="Boot Startup:" />
+    <MultiLanguage id="lbl_status_unset" value="Not Set" />
+    <MultiLanguage id="btn_set" value="Set" />
+    <MultiLanguage id="chk_hide_startup" value="Hide on Startup" />
+    <MultiLanguage id="lbl_shortcut" value="Shortcut:" />
+    <MultiLanguage id="btn_create_desktop_shortcut" value="Create Desktop Shortcut" />
+    <MultiLanguage id="btn_copy_pe_cmd" value="Copy PE Context Script" />
+    <MultiLanguage id="btn_copy_pe_startup" value="Copy PE Startup Script" />
+    <MultiLanguage id="btn_back" value="Back" />
+
+    <!-- UI_LANShare\main.lua Dynamic Translations -->
+    <MultiLanguage id="btn_start_share" value="Start Share" />
+    <MultiLanguage id="btn_stop_share" value="Stop Share" />
+    <MultiLanguage id="status_not_running" value="Not running" />
+    <MultiLanguage id="status_sharing_active" value="Sharing active on port: " />
+    <MultiLanguage id="log_server_closed" value="Share server closed." />
+    <MultiLanguage id="log_server_started" value="Server started successfully!" />
+    <MultiLanguage id="log_share_url" value="LAN Share URL: " />
+    <MultiLanguage id="msg_tip_title" value="Tip" />
+    <MultiLanguage id="msg_select_target_first" value="Please select or enter the file/folder to share first!" />
+    <MultiLanguage id="msg_port_bind_failed" value="Failed to bind service port: " />
+    <MultiLanguage id="dlg_select_file" value="Select File to Share" />
+    <MultiLanguage id="dlg_all_files" value="All Files|*.*" />
+    <MultiLanguage id="status_file_loaded" value="File loaded: " />
+    <MultiLanguage id="dlg_select_dir" value="Select Folder to Share" />
+    <MultiLanguage id="status_dir_loaded" value="Folder loaded: " />
+    <MultiLanguage id="log_ip_switched" value="Listen IP hot-switched to: " />
+
+    <!-- More Settings & System Integration -->
+    <MultiLanguage id="lbl_status_installed" value="Installed" />
+    <MultiLanguage id="lbl_status_uninstalled" value="Not Installed" />
+    <MultiLanguage id="lbl_status_set" value="Set" />
+    <MultiLanguage id="lbl_status_unset" value="Not Set" />
+    <MultiLanguage id="btn_install" value="Install" />
+    <MultiLanguage id="btn_uninstall" value="Uninstall" />
+    <MultiLanguage id="btn_set" value="Set" />
+    <MultiLanguage id="btn_cancel" value="Cancel" />
+    <MultiLanguage id="status_context_uninstalled" value="Context menu uninstalled successfully!" />
+    <MultiLanguage id="registry_menu_name" value="NB LAN Fast Share" />
+    <MultiLanguage id="status_context_registered" value="Context menu registered successfully!" />
+    <MultiLanguage id="shortcut_filename" value="NB LAN One-Click Share" />
+    <MultiLanguage id="status_shortcut_created" value="Desktop shortcut created successfully!" />
+    <MultiLanguage id="msg_success_title" value="Success" />
+    <MultiLanguage id="msg_shortcut_success_desc" value="Shortcut created successfully on Desktop:{\n}" />
+    <MultiLanguage id="status_shortcut_failed" value="Shortcut creation failed." />
+    <MultiLanguage id="msg_shortcut_failed_desc" value="Failed to create shortcut, please try to create it manually." />
+    <MultiLanguage id="status_startup_deleted" value="Startup entry deleted successfully!" />
+    <MultiLanguage id="status_startup_set" value="Startup entry set successfully!" />
+    <MultiLanguage id="msg_startup_hide_desc" value="Startup hiding enabled. It is recommended to create a desktop shortcut so that you can open the interface at any time.{\n}{\n}Do you want to create a desktop shortcut now?" />
+    <MultiLanguage id="status_pe_cmd_copied" value="PE Context script copied!" />
+    <MultiLanguage id="msg_pe_cmd_copied_desc" value="PE Context script copied to clipboard successfully!" />
+    <MultiLanguage id="status_pe_startup_copied" value="PE Startup script copied!" />
+    <MultiLanguage id="msg_pe_startup_copied_desc" value="PE Startup script copied successfully (with current port, password and path)!" />
+    <MultiLanguage id="msg_error_title" value="Error" />
+
+    <!-- Command Line Help -->
+    <MultiLanguage id="txt_cmd_help_desc" value="[Command Line Arguments]{\n}-port <Port>    : Port of the share service (Default 8845){\n}-pwd <Password> : Password for admin access security{\n}-dir <Path>      : Auto-load and share the specified directory{\n}-file <Path>     : Auto-load and share the specified file{\n}-hide           : Hide GUI and share silently in background{\n}-min            : Start minimized to the system tray" />
+
+    <!-- QR & Utils (UI_LANShare\utils_qr.lua) -->
+    <MultiLanguage id="lbl_status_prefix" value="Status: " />
+    <MultiLanguage id="status_qr_closed" value="QR share closed." />
+    <MultiLanguage id="status_link_copied" value="Share link copied to clipboard!" />
+    <MultiLanguage id="msg_server_not_started" value="Share service not started! Please click 'Start Share' first." />
+    <MultiLanguage id="lbl_qr_title" value="LAN Share QR Code" />
+    <MultiLanguage id="status_qr_reshown" value="QR code reshown." />
+    <MultiLanguage id="status_typing_text" value="Typing shared text..." />
+    <MultiLanguage id="status_text_canceled" value="Text input canceled." />
+    <MultiLanguage id="msg_input_invalid_text" value="Please enter valid text content!" />
+    <MultiLanguage id="lbl_qr_text_title" value="Share Text QR Code" />
+    <MultiLanguage id="status_qr_text_generated" value="Text share QR code generated." />
+    <MultiLanguage id="lbl_modal_text_share" value="Current Share: Custom Plain Text" />
+    <MultiLanguage id="lbl_modal_text_size" value="Text Size: " />
+    <MultiLanguage id="lbl_modal_bytes" value=" Bytes" />
+    <MultiLanguage id="lbl_modal_path_prefix" value="Share Path: " />
+    <MultiLanguage id="lbl_modal_url_prefix" value="Share URL: " />
+</Locale>

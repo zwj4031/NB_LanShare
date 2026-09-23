@@ -288,7 +288,7 @@ static void ToggleServer() {
     } else {
         int port = _wtoi(GetEditText(g_portEdit).c_str());
         if (port <= 0) port = 8845;
-        if (!g_app.is_text_share) {
+        if (!g_app.is_text_share && !g_app.aggregate_mode) {
             g_app.shared_path = GetEditText(g_sharePathEdit);
         }
         EnterCriticalSection(&g_app.cs);
@@ -325,6 +325,39 @@ static void ToggleServer() {
         ShowWindow(GetDlgItem(g_hwnd, ID_BTN_EDITTEXT), SW_HIDE);
         ShowPage(PAGE_QR);
     }
+}
+
+// Apply a share handed over from another instance (single-instance mode):
+// reuse the existing window instead of opening a new one.
+void HandoffApply(const std::vector<HandoffItem>& items) {
+    if (!g_app.hwnd) return;
+    if (g_app.is_running) ToggleServer();
+    g_app.is_text_share = false;
+
+    if (IsIconic(g_app.hwnd)) ShowWindow(g_app.hwnd, SW_RESTORE);
+    ShowWindow(g_app.hwnd, SW_SHOW);
+    SetForegroundWindow(g_app.hwnd);
+
+    if (items.empty()) return;
+
+    if (items.size() >= 2) {
+        if (AggregatePrepare(items)) {
+            SetWindowTextW(g_sharePathEdit, g_app.aggregate_label.c_str());
+            g_app.is_directory = true;
+            ToggleServer();
+            return;
+        }
+        // aggregation failed (e.g. no link could be created) -> share first item
+    }
+
+    const HandoffItem& it = items[0];
+    if (g_app.aggregate_mode) CleanupAggregateShare();
+    g_app.shared_path = it.path;
+    DWORD attr = GetFileAttributesW(it.path.c_str());
+    g_app.is_directory = (attr != INVALID_FILE_ATTRIBUTES) && (attr & FILE_ATTRIBUTE_DIRECTORY);
+    SetWindowTextW(g_sharePathEdit, it.path.c_str());
+    SetStatus((it.is_dir ? T("status_dir_loaded") : T("status_file_loaded")) + GetFileNameW(it.path));
+    ToggleServer();
 }
 
 // ---------------------------------------------------------------------------
@@ -851,6 +884,14 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             }
             return 0;
         }
+        case WM_APP_HANDOFF: {
+            std::vector<HandoffItem>* v = (std::vector<HandoffItem>*)lp;
+            if (v) {
+                HandoffApply(*v);
+                delete v;
+            }
+            return 0;
+        }
         case WM_APP_LOG: {
             std::string* p = (std::string*)lp;
             if (p) {
@@ -950,6 +991,8 @@ int RunMainWindow(HINSTANCE hInstance, const std::vector<std::wstring>& args) {
                                 NULL, NULL, hInstance, NULL);
     if (!hwnd) return 1;
 
+    HandoffPumpStart();
+
     InitCombo(g_ipCombo);
 
     // create title bar buttons
@@ -987,7 +1030,11 @@ int RunMainWindow(HINSTANCE hInstance, const std::vector<std::wstring>& args) {
     ShowWindow(hwnd, hide ? SW_HIDE : (minimized ? SW_SHOWMINIMIZED : SW_SHOW));
     UpdateWindow(hwnd);
 
-    if (!dirArg.empty()) {
+    if (g_app.aggregate_mode) {
+        SetWindowTextW(g_sharePathEdit, g_app.aggregate_label.c_str());
+        g_app.is_directory = true;
+        ToggleServer();
+    } else if (!dirArg.empty()) {
         SetWindowTextW(g_sharePathEdit, dirArg.c_str());
         g_app.shared_path = dirArg;
         g_app.is_directory = true;

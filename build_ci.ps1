@@ -53,6 +53,7 @@ $sources = @(
     "src\http_server.cpp",
     "src\http_routes.cpp",
     "src\sys_integration.cpp",
+    "src\aggregate.cpp",
     "src\gui.cpp"
 )
 

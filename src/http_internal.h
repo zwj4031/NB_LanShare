@@ -21,6 +21,7 @@ struct HttpConn {
     bool is_directory;
     bool is_realname_mode;
     bool is_admin;
+    bool aggregate_mode;
     std::string server_pwd;
     std::wstring shared_path;
     std::string client_realname_utf8;

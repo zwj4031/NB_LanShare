@@ -98,6 +98,7 @@ static const LangRow kRows[] = {
 {"lbl_modal_bytes", L" 字节", L" Bytes", L" 位元組", L" 바이트"},
 {"lbl_modal_path_prefix", L"分享路径: ", L"Share Path: ", L"分享路徑: ", L"공유 경로: "},
 {"lbl_modal_url_prefix", L"分享网址: ", L"Share URL: ", L"分享網址: ", L"공유 URL: "},
+{"lbl_aggregate_label", L"多选聚合分享(只读)", L"Aggregate Share (Read-only)", L"多選聚合分享(唯讀)", L"다중 선택 집계 공유(읽기 전용)"},
 };
 
 static std::map<std::string, std::wstring> g_lang;

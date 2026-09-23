@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Locale>
+    <!-- 繁體中文專屬字體 -->
+    <Font shared="true" id="14" size="14" name="微軟正黑體" default="true" />
+    <Font shared="true" id="16b" size="16" name="微軟正黑體" bold="true"/>
+    <Font shared="true" id="sym" size="16" name="Segoe MDL2 Assets"/>
+
+    <!-- 介面文本元素 -->
+    <MultiLanguage id="title_text" value="局域网极速文件/目录分享器" />
+    <MultiLanguage id="lbl_share_path" value="分享路徑:" />
+    <MultiLanguage id="btn_select_file" value="選擇檔案" />
+    <MultiLanguage id="btn_select_dir" value="選擇目錄" />
+    <MultiLanguage id="lbl_service_port" value="服務埠號:" />
+    <MultiLanguage id="lbl_local_ip" value="本機 IP:" />
+    <MultiLanguage id="lbl_admin_password" value="管理密碼:" />
+    <MultiLanguage id="edit_password_prompt" value="留空則無需密碼" />
+    <MultiLanguage id="lbl_collect_mode" value="收集模式:" />
+    <MultiLanguage id="chk_realname_mode" value="啟用實名提交模式(防看防改)" />
+    <MultiLanguage id="btn_start_share" value="啟動分享" />
+    <MultiLanguage id="btn_show_qr" value="查看二維碼" />
+    <MultiLanguage id="btn_share_text" value="分享文字" />
+    <MultiLanguage id="btn_more_config" value="更多配置" />
+    <MultiLanguage id="lbl_run_log" value="即時執行日誌" />
+    <MultiLanguage id="lbl_qr_title" value="局域網分享二維碼" />
+    <MultiLanguage id="lbl_share_path_val" value="分享路徑: -" />
+    <MultiLanguage id="btn_share_url_val" value="分享網址: -" />
+    <MultiLanguage id="btn_copy_link" value="複製連結" />
+    <MultiLanguage id="btn_edit_text" value="編輯文字" />
+    <MultiLanguage id="btn_back_main" value="返回主畫面" />
+    <MultiLanguage id="lbl_share_new_text" value="分享新文字內容" />
+    <MultiLanguage id="btn_generate_qr" value="生成二維碼" />
+    <MultiLanguage id="btn_cancel" value="取消" />
+    <MultiLanguage id="lbl_more_config_title" value="更多配置" />
+    <MultiLanguage id="lbl_context_menu" value="右鍵選單:" />
+    <MultiLanguage id="lbl_status_uninstalled" value="未安裝" />
+    <MultiLanguage id="btn_install" value="安裝" />
+    <MultiLanguage id="lbl_boot_startup" value="開機啟動:" />
+    <MultiLanguage id="lbl_status_unset" value="未設置" />
+    <MultiLanguage id="btn_set" value="設置" />
+    <MultiLanguage id="chk_hide_startup" value="自啟隱藏" />
+    <MultiLanguage id="lbl_shortcut" value="快捷方式:" />
+    <MultiLanguage id="btn_create_desktop_shortcut" value="建立桌面一鍵分享快捷方式" />
+    <MultiLanguage id="btn_copy_pe_cmd" value="複製PE右鍵指令碼" />
+    <MultiLanguage id="btn_copy_pe_startup" value="複製PE開機指令碼" />
+    <MultiLanguage id="btn_back" value="返回" />
+
+    <!-- UI_LANShare\main.lua 動態翻譯 -->
+    <MultiLanguage id="btn_start_share" value="啟動分享" />
+    <MultiLanguage id="btn_stop_share" value="停止分享" />
+    <MultiLanguage id="status_not_running" value="未運行" />
+    <MultiLanguage id="status_sharing_active" value="正在分享中..." />
+    <MultiLanguage id="log_server_closed" value="分享伺服器已關閉。" />
+    <MultiLanguage id="log_server_started" value="伺服器啟動成功！" />
+    <MultiLanguage id="log_share_url" value="區域網路分享網址: " />
+    <MultiLanguage id="msg_tip_title" value="提示" />
+    <MultiLanguage id="msg_select_target_first" value="請先選擇或輸入要分享的文件或目錄！" />
+    <MultiLanguage id="msg_port_bind_failed" value="綁定服務連接埠失敗: " />
+    <MultiLanguage id="dlg_select_file" value="選擇要分享的文件" />
+    <MultiLanguage id="dlg_all_files" value="所有文件|*.*" />
+    <MultiLanguage id="status_file_loaded" value="已載入文件: " />
+    <MultiLanguage id="dlg_select_dir" value="選擇要分享的目錄" />
+    <MultiLanguage id="status_dir_loaded" value="已載入目錄: " />
+    <MultiLanguage id="log_ip_switched" value="本機監聽 IP 已熱切換為: " />
+
+    <!-- 更多設置相關 -->
+    <MultiLanguage id="lbl_status_installed" value="已安裝" />
+    <MultiLanguage id="lbl_status_uninstalled" value="未安裝" />
+    <MultiLanguage id="lbl_status_set" value="已設置" />
+    <MultiLanguage id="lbl_status_unset" value="未設置" />
+    <MultiLanguage id="btn_install" value="安裝" />
+    <MultiLanguage id="btn_uninstall" value="卸載" />
+    <MultiLanguage id="btn_set" value="設置" />
+    <MultiLanguage id="btn_cancel" value="取消" />
+
+    <!-- 系統整合 (右鍵選單、捷徑、開機自啟) -->
+    <MultiLanguage id="status_context_uninstalled" value="右鍵選單已成功卸載！" />
+    <MultiLanguage id="registry_menu_name" value="NB區域網路極速分享" />
+    <MultiLanguage id="status_context_registered" value="右鍵選單已成功註冊！" />
+    <MultiLanguage id="shortcut_filename" value="NB區域網路一鍵分享" />
+    <MultiLanguage id="status_shortcut_created" value="桌面捷徑建立成功！" />
+    <MultiLanguage id="msg_success_title" value="成功" />
+    <MultiLanguage id="msg_shortcut_success_desc" value="已在桌面成功建立捷徑：{\n}" />
+    <MultiLanguage id="status_shortcut_failed" value="捷徑建立失敗。" />
+    <MultiLanguage id="msg_shortcut_failed_desc" value="捷徑建立失敗，請嘗試手動建立。" />
+    <MultiLanguage id="status_startup_deleted" value="自啟動項已成功刪除！" />
+    <MultiLanguage id="status_startup_set" value="已設置開機啟動！" />
+    <MultiLanguage id="msg_startup_hide_desc" value="已設置自啟隱藏。建議在桌面建立該程式的捷徑，以便您隨時雙擊運行打開介面。{\n}{\n}是否立即在桌面建立捷徑？" />
+    <MultiLanguage id="status_pe_cmd_copied" value="PE 右鍵腳本已複製！" />
+    <MultiLanguage id="msg_pe_cmd_copied_desc" value="PE 右鍵腳本已成功複製到剪貼簿！" />
+    <MultiLanguage id="status_pe_startup_copied" value="PE 開機腳本已複製！" />
+    <MultiLanguage id="msg_pe_startup_copied_desc" value="PE 開機自啟腳本已成功複製（已攜帶目前連接埠、密碼及共享路徑）！" />
+    <MultiLanguage id="msg_error_title" value="錯誤" />
+
+    <!-- 命令列參數說明 -->
+    <MultiLanguage id="txt_cmd_help_desc" value="【命令列參數說明】{\n}-port <連接埠>    : 指定分享服務連接埠 (預設 8845){\n}-pwd <密碼>     : 設定管理密碼，保護文件讀寫安全{\n}-dir <目錄路徑> : 啟動時自動載入並分享指定的目錄{\n}-file <文件路徑>: 啟動時自動載入並分享指定的文件{\n}-hide           : 啟動時直接隱藏介面，背景靜默分享{\n}-min            : 啟動時最小化運行到系統匣" />
+
+    <!-- 二维码及工具逻辑翻译 (UI_LANShare\utils_qr.lua) -->
+    <MultiLanguage id="lbl_status_prefix" value="狀態: " />
+    <MultiLanguage id="status_qr_closed" value="已關閉分享二維碼" />
+    <MultiLanguage id="status_link_copied" value="分享連結已複製到剪貼簿！" />
+    <MultiLanguage id="msg_server_not_started" value="分享服務未啟動！請先點擊“啟動分享”。" />
+    <MultiLanguage id="lbl_qr_title" value="區域網路分享二維碼" />
+    <MultiLanguage id="status_qr_reshown" value="已重新展示二維碼" />
+    <MultiLanguage id="status_typing_text" value="正在輸入分享文本" />
+    <MultiLanguage id="status_text_canceled" value="已取消文本輸入" />
+    <MultiLanguage id="msg_input_invalid_text" value="請輸入有效的文本內容！" />
+    <MultiLanguage id="lbl_qr_text_title" value="分享文本二維碼" />
+    <MultiLanguage id="status_qr_text_generated" value="已生成文本分享二維碼" />
+    <MultiLanguage id="lbl_modal_text_share" value="當前分享: 自定義純文本" />
+    <MultiLanguage id="lbl_modal_text_size" value="文本大小: " />
+    <MultiLanguage id="lbl_modal_bytes" value=" 位元組" />
+    <MultiLanguage id="lbl_modal_path_prefix" value="分享路徑: " />
+    <MultiLanguage id="lbl_modal_url_prefix" value="分享網址: " />
+</Locale>

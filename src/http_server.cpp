@@ -44,6 +44,24 @@ static bool RecvLine(SOCKET s, std::string& line) {
     }
 }
 
+// Discard an unread POST body so the client gets a clean response (FIN) instead of
+// an RST (TCP discards the response when the server closes with receive data
+// still in flight). Only routes that parse their own body (/upload multipart)
+// must skip this.
+static void DrainRequestBody(SOCKET s, const std::map<std::string, std::string>& headers) {
+    std::map<std::string, std::string>::const_iterator it = headers.find("content-length");
+    if (it == headers.end()) return;
+    long long n = _atoi64(it->second.c_str());
+    if (n <= 0 || n > (1 << 23)) return;
+    char buf[2048];
+    while (n > 0) {
+        int chunk = (n > (long long)sizeof(buf)) ? (int)sizeof(buf) : (int)n;
+        int got = recv(s, buf, chunk, 0);
+        if (got <= 0) break;
+        n -= got;
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Misc helpers
 // ---------------------------------------------------------------------------
@@ -299,6 +317,7 @@ static bool ProcessRequest(SOCKET s, std::string& line, bool& keep_alive) {
     EnterCriticalSection(&g_app.cs);
     c.is_directory = g_app.is_directory;
     c.is_realname_mode = g_app.realname_mode;
+    c.aggregate_mode = g_app.aggregate_mode;
     c.server_pwd = g_app.admin_pwd_utf8;
     c.shared_path = g_app.shared_path;
     std::string server_run_id = g_app.server_run_id;
@@ -324,9 +343,19 @@ static bool ProcessRequest(SOCKET s, std::string& line, bool& keep_alive) {
                         c.raw_path_only == "/rename" || c.raw_path_only == "/mkdir");
     c.write_op = is_write_op;
 
+    // aggregate shares are read-only: never let a write op reach the real files
+    // through the merged links (delete/rename would otherwise follow a junction
+    // or hardlink into the user's actual data).
+    if (is_write_op && c.aggregate_mode) {
+        DrainRequestBody(s, c.headers);
+        SendString(s, "HTTP/1.1 403 Forbidden\r\n\r\nRead-only Aggregate Share.");
+        return false;
+    }
+
     // realname ownership checks for write ops
     if (c.is_realname_mode && is_write_op && !c.is_admin) {
         if (c.client_realname_utf8.empty()) {
+            DrainRequestBody(s, c.headers);
             SendString(s, "HTTP/1.1 403 Forbidden\r\n\r\nNeed Login");
             return false;
         }
@@ -335,6 +364,7 @@ static bool ProcessRequest(SOCKET s, std::string& line, bool& keep_alive) {
         std::string rn = c.client_realname_utf8;
         bool owned = (target_path == rn) || (target_path.compare(0, rn.size() + 1, rn + "/") == 0);
         if (!owned) {
+            DrainRequestBody(s, c.headers);
             SendString(s, "HTTP/1.1 403 Forbidden\r\n\r\nPermission Denied.");
             return false;
         }
@@ -350,6 +380,7 @@ static bool ProcessRequest(SOCKET s, std::string& line, bool& keep_alive) {
                               std::to_string((unsigned long long)login_html.size()) +
                               "\r\nConnection: " + (keep_alive ? "keep-alive" : "close") + "\r\n\r\n" + login_html);
             } else {
+                DrainRequestBody(s, c.headers);
                 SendString(s,
                     "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n"
                     "<script src=\"/assets/locales/zh-CN.js\" charset=\"utf-8\"></script>"
@@ -367,6 +398,7 @@ static bool ProcessRequest(SOCKET s, std::string& line, bool& keep_alive) {
         if (not_bound) g_app.realname_ip_binds[c.client_realname_utf8] = c.client_ip;
         LeaveCriticalSection(&g_app.cs);
         if (bound_conflict) {
+            DrainRequestBody(s, c.headers);
             SendString(s,
                 "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n"
                 "<script src=\"/assets/locales/zh-CN.js\" charset=\"utf-8\"></script>"
@@ -438,6 +470,7 @@ static bool ProcessRequest(SOCKET s, std::string& line, bool& keep_alive) {
         }
 
         if (is_write_op && !c.server_pwd.empty() && !c.is_admin) {
+            DrainRequestBody(s, c.headers);
             SendString(s, "HTTP/1.1 403 Forbidden\r\n\r\nPermission Denied: Invalid Password.");
             return false;
         }

@@ -46,7 +46,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         }
     }
 
+    int handoff = HandoffInit(args);
+    if (handoff == 1) {
+        // delivered to an existing instance; do not open a second window
+        CoUninitialize();
+        WSACleanup();
+        DeleteCriticalSection(&g_app.cs);
+        return 0;
+    }
+
     int rc = RunMainWindow(hInstance, args);
+
+    HandoffShutdown();
+    CleanupAggregateShare();
 
     CoUninitialize();
     WSACleanup();

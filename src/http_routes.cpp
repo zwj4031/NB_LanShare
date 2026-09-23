@@ -291,7 +291,8 @@ void RouteGetDirectory(HttpConn& c, const std::wstring& full_path, const std::st
     } else {
         is_readonly = !c.server_pwd.empty();
     }
-    if (is_admin) is_readonly = false;
+    if (is_admin && !c.aggregate_mode) is_readonly = false;
+    if (c.aggregate_mode) is_readonly = true;
 
     // breadcrumb
     std::string breadcrumb = "<a href=\"/\">&#127968; <span data-i18n=\"home\">Home</span></a>";

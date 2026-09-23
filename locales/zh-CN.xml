@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Locale>
+    <!-- 简体中文专属字体 -->
+    <Font shared="true" id="14" size="14" name="微软雅黑" default="true" />
+    <Font shared="true" id="16b" size="16" name="微软雅黑" bold="true"/>
+    <Font shared="true" id="sym" size="16" name="Segoe MDL2 Assets"/>
+
+    <!-- 界面文本元素 -->
+    <MultiLanguage id="title_text" value="局域网极速文件/目录分享器" />
+    <MultiLanguage id="lbl_share_path" value="分享路径:" />
+    <MultiLanguage id="btn_select_file" value="选择文件" />
+    <MultiLanguage id="btn_select_dir" value="选择目录" />
+    <MultiLanguage id="lbl_service_port" value="服务端口:" />
+    <MultiLanguage id="lbl_local_ip" value="本机 IP:" />
+    <MultiLanguage id="lbl_admin_password" value="管理密码:" />
+    <MultiLanguage id="edit_password_prompt" value="留空则无需密码" />
+    <MultiLanguage id="lbl_collect_mode" value="收集模式:" />
+    <MultiLanguage id="chk_realname_mode" value="启用实名提交模式(防看防改)" />
+    <MultiLanguage id="btn_start_share" value="启动分享" />
+    <MultiLanguage id="btn_show_qr" value="查看二维码" />
+    <MultiLanguage id="btn_share_text" value="分享文本" />
+    <MultiLanguage id="btn_more_config" value="更多配置" />
+    <MultiLanguage id="lbl_run_log" value="实时运行日志" />
+    <MultiLanguage id="lbl_qr_title" value="局域网分享二维码" />
+    <MultiLanguage id="lbl_share_path_val" value="分享路径: -" />
+    <MultiLanguage id="btn_share_url_val" value="分享网址: -" />
+    <MultiLanguage id="btn_copy_link" value="复制链接" />
+    <MultiLanguage id="btn_edit_text" value="编辑文本" />
+    <MultiLanguage id="btn_back_main" value="返回主界面" />
+    <MultiLanguage id="lbl_share_new_text" value="分享新文本内容" />
+    <MultiLanguage id="btn_generate_qr" value="生成二维码" />
+    <MultiLanguage id="btn_cancel" value="取消" />
+    <MultiLanguage id="lbl_more_config_title" value="更多配置" />
+    <MultiLanguage id="lbl_context_menu" value="右键菜单:" />
+    <MultiLanguage id="lbl_status_uninstalled" value="未安装" />
+    <MultiLanguage id="btn_install" value="安装" />
+    <MultiLanguage id="lbl_boot_startup" value="开机启动:" />
+    <MultiLanguage id="lbl_status_unset" value="未设置" />
+    <MultiLanguage id="btn_set" value="设置" />
+    <MultiLanguage id="chk_hide_startup" value="自启隐藏" />
+    <MultiLanguage id="lbl_shortcut" value="快捷方式:" />
+    <MultiLanguage id="btn_create_desktop_shortcut" value="创建桌面一键分享快捷方式" />
+    <MultiLanguage id="btn_copy_pe_cmd" value="复制PE右键脚本" />
+    <MultiLanguage id="btn_copy_pe_startup" value="复制PE开机脚本" />
+    <MultiLanguage id="btn_back" value="返回" />
+
+    <!-- UI_LANShare\main.lua 动态翻译 -->
+    <MultiLanguage id="btn_start_share" value="启动分享" />
+    <MultiLanguage id="btn_stop_share" value="停止分享" />
+    <MultiLanguage id="status_not_running" value="未运行" />
+    <MultiLanguage id="status_sharing_active" value="正在分享中..." />
+    <MultiLanguage id="log_server_closed" value="分享服务器已关闭。" />
+    <MultiLanguage id="log_server_started" value="服务器启动成功！" />
+    <MultiLanguage id="log_share_url" value="局域网分享地址: " />
+    <MultiLanguage id="msg_tip_title" value="提示" />
+    <MultiLanguage id="msg_select_target_first" value="请先选择或输入要分享的文件或目录！" />
+    <MultiLanguage id="msg_port_bind_failed" value="绑定服务端口失败: " />
+    <MultiLanguage id="dlg_select_file" value="选择要分享的文件" />
+    <MultiLanguage id="dlg_all_files" value="所有文件|*.*" />
+    <MultiLanguage id="status_file_loaded" value="已载入文件: " />
+    <MultiLanguage id="dlg_select_dir" value="选择要分享的目录" />
+    <MultiLanguage id="status_dir_loaded" value="已载入目录: " />
+    <MultiLanguage id="log_ip_switched" value="本机监听 IP 已热切换为: " />
+
+    <!-- 更多设置相关 -->
+    <MultiLanguage id="lbl_status_installed" value="已安装" />
+    <MultiLanguage id="lbl_status_uninstalled" value="未安装" />
+    <MultiLanguage id="lbl_status_set" value="已设置" />
+    <MultiLanguage id="lbl_status_unset" value="未设置" />
+    <MultiLanguage id="btn_install" value="安装" />
+    <MultiLanguage id="btn_uninstall" value="卸载" />
+    <MultiLanguage id="btn_set" value="设置" />
+    <MultiLanguage id="btn_cancel" value="取消" />
+
+    <!-- 系统集成相关 -->
+    <MultiLanguage id="status_context_uninstalled" value="右键菜单已成功卸载！" />
+    <MultiLanguage id="registry_menu_name" value="NB局域网极速分享" />
+    <MultiLanguage id="status_context_registered" value="右键菜单已成功注册！" />
+    <MultiLanguage id="shortcut_filename" value="NB局域网一键分享" />
+    <MultiLanguage id="status_shortcut_created" value="桌面快捷方式创建成功！" />
+    <MultiLanguage id="msg_success_title" value="成功" />
+    <MultiLanguage id="msg_shortcut_success_desc" value="已在桌面成功创建快捷方式：{\n}" />
+    <MultiLanguage id="status_shortcut_failed" value="快捷方式创建失败。" />
+    <MultiLanguage id="msg_shortcut_failed_desc" value="快捷方式创建失败，请尝试手动创建。" />
+    <MultiLanguage id="status_startup_deleted" value="自启动项已成功删除！" />
+    <MultiLanguage id="status_startup_set" value="已设置开机启动！" />
+    <MultiLanguage id="msg_startup_hide_desc" value="已设置自启隐藏。建议在桌面创建该程序的快捷方式，以便您随时双击运行打开界面。{\n}{\n}是否立即在桌面创建快捷方式？" />
+    <MultiLanguage id="status_pe_cmd_copied" value="PE 右键脚本已复制！" />
+    <MultiLanguage id="msg_pe_cmd_copied_desc" value="PE 右键脚本已成功复制到剪贴板！" />
+    <MultiLanguage id="status_pe_startup_copied" value="PE 开机脚本已复制！" />
+    <MultiLanguage id="msg_pe_startup_copied_desc" value="PE 开机自启脚本已成功复制（已携带当前端口、密码及共享路径）！" />
+    <MultiLanguage id="msg_error_title" value="错误" />
+
+    <!-- 命令行帮助 -->
+    <MultiLanguage id="txt_cmd_help_desc" value="【命令行参数说明】{\n}-port <端口>    : 指定分享服务端口 (默认 8845){\n}-pwd <密码>     : 设定管理密码，保护文件读写安全{\n}-dir <目录路径> : 启动时自动加载并分享指定的目录{\n}-file <文件路径>: 启动时自动加载并分享指定的文件{\n}-hide           : 启动时直接隐藏界面，后台静默分享{\n}-min            : 启动时最小化运行到系统托盘" />
+
+    <!-- 二维码及工具逻辑翻译 (UI_LANShare\utils_qr.lua) -->
+    <MultiLanguage id="lbl_status_prefix" value="状态: " />
+    <MultiLanguage id="status_qr_closed" value="已关闭分享二维码" />
+    <MultiLanguage id="status_link_copied" value="分享链接已复制到剪贴板！" />
+    <MultiLanguage id="msg_server_not_started" value="分享服务未启动！请先点击“启动分享”。" />
+    <MultiLanguage id="lbl_qr_title" value="局域网分享二维码" />
+    <MultiLanguage id="status_qr_reshown" value="已重新展示二维码" />
+    <MultiLanguage id="status_typing_text" value="正在输入分享文本" />
+    <MultiLanguage id="status_text_canceled" value="已取消文本输入" />
+    <MultiLanguage id="msg_input_invalid_text" value="请输入有效的文本内容！" />
+    <MultiLanguage id="lbl_qr_text_title" value="分享文本二维码" />
+    <MultiLanguage id="status_qr_text_generated" value="已生成文本分享二维码" />
+    <MultiLanguage id="lbl_modal_text_share" value="当前分享: 自定义纯文本" />
+    <MultiLanguage id="lbl_modal_text_size" value="文本大小: " />
+    <MultiLanguage id="lbl_modal_bytes" value=" 字节" />
+    <MultiLanguage id="lbl_modal_path_prefix" value="分享路径: " />
+    <MultiLanguage id="lbl_modal_url_prefix" value="分享网址: " />
+ </Locale>

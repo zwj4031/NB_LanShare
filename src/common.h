@@ -49,6 +49,7 @@
 // ---------------------------------------------------------------------------
 #define WM_APP_LOG        (WM_APP + 1)   // wParam unused, lParam = std::string* (utf8)
 #define WM_APP_STATUS     (WM_APP + 2)   // lParam = std::wstring* (status text)
+#define WM_APP_HANDOFF    (WM_APP + 3)   // lParam = std::vector<HandoffItem>* (single-instance handoff)
 
 // ---------------------------------------------------------------------------
 // Application global state (shared between UI thread and HTTP server thread)
@@ -62,6 +63,7 @@ struct AppState {
     bool           is_text_share;
     bool           is_directory;
     bool           realname_mode;
+    bool           aggregate_mode;    // read-only multi-item aggregate share (single window)
 
     // configuration
     int            port;
@@ -75,6 +77,10 @@ struct AppState {
     // paths
     std::wstring   app_dir;           // exe directory, with trailing backslash
     std::wstring   log_file_path;     // debug log file
+
+    // aggregate share (see aggregate.cpp)
+    std::wstring   aggregate_dir;     // temp dir of merged links (when aggregate_mode)
+    std::wstring   aggregate_label;   // GUI display label for the aggregate share
 
     // real name -> ip binds (utf8 name -> ip)
     std::map<std::string, std::string> realname_ip_binds;
@@ -185,6 +191,26 @@ void SetClipboardText(const std::wstring& text);
 std::wstring GetAppExePath();
 
 // ---------------------------------------------------------------------------
+// aggregate.cpp - single-instance handoff & read-only multi-item aggregate share
+// ---------------------------------------------------------------------------
+struct HandoffItem {
+    bool is_dir;
+    std::wstring path;
+};
+
+// HandoffInit: parse the startup args and participate in single-instance handoff.
+//   returns  1 = this process delivered to an existing instance (caller should exit),
+//            0 = this process is (or became) the master, no aggregate prepared,
+//           -1 = master with an aggregate share already configured on g_app.
+// The master must be followed by HandoffPumpStart() once the UI window exists.
+int  HandoffInit(const std::vector<std::wstring>& args);
+void HandoffPumpStart();
+void HandoffShutdown();
+bool AggregatePrepare(const std::vector<HandoffItem>& items);
+void CleanupAggregateShare();
+
+// ---------------------------------------------------------------------------
 // gui.cpp
 // ---------------------------------------------------------------------------
 int  RunMainWindow(HINSTANCE hInstance, const std::vector<std::wstring>& args);
+void HandoffApply(const std::vector<HandoffItem>& items);
