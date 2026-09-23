@@ -42,6 +42,9 @@ static HWND g_textEdit;
 static HWND g_lblCtxStatus, g_btnCtx, g_lblStartStatus, g_btnStart, g_chkHide;
 static HWND g_statusLabel;
 static HWND g_btnToggle;
+static HWND g_btnMin = NULL, g_btnClose = NULL;
+static bool g_hoverMin = false, g_hoverClose = false;
+static WNDPROC g_captionOldProc = NULL;
 
 static std::vector<HWND> g_pages[4];
 static std::vector<std::pair<int, RECT> > g_cards;
@@ -108,6 +111,34 @@ static HWND MkCheck(HWND parent, int id, const std::wstring& text, int x, int y,
                               x, y, w, h, parent, (HMENU)(INT_PTR)id, g_hInst, NULL);
     SendMessageW(hw, WM_SETFONT, (WPARAM)g_font, TRUE);
     return hw;
+}
+
+static COLORREF Darken(COLORREF c, int f) {
+    return RGB(GetRValue(c) * f / 100, GetGValue(c) * f / 100, GetBValue(c) * f / 100);
+}
+
+static LRESULT CALLBACK CaptionBtnProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    bool* pHover = NULL;
+    if (hwnd == g_btnMin) pHover = &g_hoverMin;
+    else if (hwnd == g_btnClose) pHover = &g_hoverClose;
+    if (pHover) {
+        if (msg == WM_MOUSEMOVE) {
+            if (!*pHover) {
+                *pHover = true;
+                TRACKMOUSEEVENT tme;
+                tme.cbSize = sizeof(tme);
+                tme.dwFlags = TME_LEAVE;
+                tme.hwndTrack = hwnd;
+                tme.dwHoverTime = 0;
+                TrackMouseEvent(&tme);
+                InvalidateRect(hwnd, NULL, FALSE);
+            }
+        } else if (msg == WM_MOUSELEAVE) {
+            *pHover = false;
+            InvalidateRect(hwnd, NULL, FALSE);
+        }
+    }
+    return CallWindowProcW(g_captionOldProc, hwnd, msg, wp, lp);
 }
 
 static void AddCard(int page, int x, int y, int w, int h) {
@@ -691,6 +722,44 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case WM_DRAWITEM: {
             LPDRAWITEMSTRUCT dis = (LPDRAWITEMSTRUCT)lp;
             if (dis->CtlType == ODT_BUTTON) {
+                if (dis->hwndItem == g_btnMin || dis->hwndItem == g_btnClose) {
+                    bool isClose = (dis->hwndItem == g_btnClose);
+                    bool hover = isClose ? g_hoverClose : g_hoverMin;
+                    bool pressed = (dis->itemState & ODS_SELECTED) != 0;
+                    COLORREF base = C_TITLEBG;
+                    if (hover || pressed) base = isClose ? RGB(205, 76, 70) : RGB(63, 78, 107);
+                    if (pressed) base = Darken(base, 82);
+
+                    RECT r;
+                    GetClientRect(dis->hwndItem, &r);
+                    HBRUSH br = CreateSolidBrush(base);
+                    FillRect(dis->hDC, &r, br);
+                    DeleteObject(br);
+
+                    int cx = (r.left + r.right) / 2;
+                    int cy = (r.top + r.bottom) / 2;
+                    HBRUSH wb = CreateSolidBrush(RGB(255, 255, 255));
+                    if (isClose) {
+                        HPEN pen = CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+                        HGDIOBJ op = SelectObject(dis->hDC, pen);
+                        MoveToEx(dis->hDC, cx - 6, cy - 6, NULL);
+                        LineTo(dis->hDC, cx + 6, cy + 6);
+                        MoveToEx(dis->hDC, cx + 6, cy - 6, NULL);
+                        LineTo(dis->hDC, cx - 6, cy + 6);
+                        SelectObject(dis->hDC, op);
+                        DeleteObject(pen);
+                    } else {
+                        RECT bar;
+                        bar.left = cx - 6; bar.top = cy - 1;
+                        bar.right = cx + 6; bar.bottom = cy + 1;
+                        HGDIOBJ ob = SelectObject(dis->hDC, wb);
+                        FillRect(dis->hDC, &bar, wb);
+                        SelectObject(dis->hDC, ob);
+                    }
+                    DeleteObject(wb);
+                    return TRUE;
+                }
+
                 BtnStyle st;
                 st.bg = C_GRAY; st.fg = C_DARKTXT; st.border = true;
                 std::map<HWND, BtnStyle>::iterator it = g_btnStyles.find(dis->hwndItem);
@@ -884,8 +953,10 @@ int RunMainWindow(HINSTANCE hInstance, const std::vector<std::wstring>& args) {
     InitCombo(g_ipCombo);
 
     // create title bar buttons
-    MkButton(hwnd, ID_BTN_MIN, L"\u2014", w - 64, 0, 32, 32, C_TITLEBG, RGB(255, 255, 255), false);
-    MkButton(hwnd, ID_BTN_CLOSE, L"\u2715", w - 32, 0, 32, 32, C_TITLEBG, RGB(255, 255, 255), false);
+    g_btnMin = MkButton(hwnd, ID_BTN_MIN, L"", w - 64, 0, 32, 32, C_TITLEBG, RGB(255, 255, 255), false);
+    g_btnClose = MkButton(hwnd, ID_BTN_CLOSE, L"", w - 32, 0, 32, 32, C_TITLEBG, RGB(255, 255, 255), false);
+    g_captionOldProc = (WNDPROC)SetWindowLongPtrW(g_btnMin, GWLP_WNDPROC, (LONG_PTR)CaptionBtnProc);
+    SetWindowLongPtrW(g_btnClose, GWLP_WNDPROC, (LONG_PTR)CaptionBtnProc);
 
     // command line options
     bool hide = false;

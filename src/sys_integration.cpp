@@ -221,6 +221,11 @@ std::wstring BuildPeCmdScript() {
     std::wstring menu_name = T("registry_menu_name");
     std::wstring exe = GetAppExePath();
 
+    std::wstring extra;
+    extra += L" -port " + std::to_wstring(g_app.port);
+    if (!g_app.admin_pwd_utf8.empty())
+        extra += L" -pwd \\\"" + Utf8ToWide(g_app.admin_pwd_utf8) + L"\\\"";
+
     std::wstring s;
     s += L"@echo off\r\n";
     s += L":: ===========================================\r\n";
@@ -231,17 +236,17 @@ std::wstring BuildPeCmdScript() {
 
     struct R { const wchar_t* key; const wchar_t* arg; };
     R rows[5] = {
-        { L"HKCR\\*\\shell\\NBLANShare", L"-file \"%%1\"" },
-        { L"HKCR\\Directory\\shell\\NBLANShare", L"-dir \"%%1\"" },
-        { L"HKCR\\Drive\\shell\\NBLANShare", L"-dir \"%%1\"" },
-        { L"HKCR\\Directory\\Background\\shell\\NBLANShare", L"-dir \"%%V\"" },
-        { L"HKCR\\DesktopBackground\\shell\\NBLANShare", L"-dir \"%%V\"" },
+        { L"HKCR\\*\\shell\\NBLANShare", L"-file \\\"%%1\\\"" },
+        { L"HKCR\\Directory\\shell\\NBLANShare", L"-dir \\\"%%1\\\"" },
+        { L"HKCR\\Drive\\shell\\NBLANShare", L"-dir \\\"%%1\\\"" },
+        { L"HKCR\\Directory\\Background\\shell\\NBLANShare", L"-dir \\\"%%V\\\"" },
+        { L"HKCR\\DesktopBackground\\shell\\NBLANShare", L"-dir \\\"%%V\\\"" },
     };
     for (int i = 0; i < 5; ++i) {
         s += L"reg add \"" + std::wstring(rows[i].key) + L"\" /ve /t REG_SZ /d \"%menu_name%\" /f\r\n";
         s += L"reg add \"" + std::wstring(rows[i].key) + L"\" /v \"Icon\" /t REG_SZ /d \"" + exe + L"\" /f\r\n";
         s += L"reg add \"" + std::wstring(rows[i].key) + L"\\command\" /ve /t REG_SZ /d \"\\\"" + exe +
-             L"\\\" " + rows[i].arg + L"\" /f\r\n\r\n";
+             L"\\\"" + extra + L" " + rows[i].arg + L"\" /f\r\n\r\n";
     }
     return s;
 }
