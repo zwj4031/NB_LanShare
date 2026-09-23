@@ -58,15 +58,15 @@ static HBITMAP g_logoBmp = NULL;
 static std::wstring g_title;
 
 // colors
-static const COLORREF C_BG = RGB(243, 242, 241);
+static const COLORREF C_BG = RGB(238, 241, 247);
 static const COLORREF C_CARD = RGB(255, 255, 255);
-static const COLORREF C_BORDER = RGB(214, 210, 208);
-static const COLORREF C_TITLEBG = RGB(30, 41, 59);
-static const COLORREF C_BLUE = RGB(37, 99, 235);
-static const COLORREF C_RED = RGB(244, 67, 54);
+static const COLORREF C_BORDER = RGB(211, 219, 229);
+static const COLORREF C_TITLEBG = RGB(26, 35, 58);
+static const COLORREF C_BLUE = RGB(0, 112, 243);
+static const COLORREF C_RED = RGB(220, 40, 50);
 static const COLORREF C_GREEN = RGB(76, 175, 80);
-static const COLORREF C_GRAY = RGB(225, 224, 222);
-static const COLORREF C_DARKTXT = RGB(31, 41, 55);
+static const COLORREF C_GRAY = RGB(233, 237, 244);
+static const COLORREF C_DARKTXT = RGB(50, 60, 75);
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -727,7 +727,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     bool hover = isClose ? g_hoverClose : g_hoverMin;
                     bool pressed = (dis->itemState & ODS_SELECTED) != 0;
                     COLORREF base = C_TITLEBG;
-                    if (hover || pressed) base = isClose ? RGB(205, 76, 70) : RGB(63, 78, 107);
+                    if (hover || pressed) base = isClose ? RGB(205, 76, 70) : RGB(59, 72, 104);
                     if (pressed) base = Darken(base, 82);
 
                     RECT r;

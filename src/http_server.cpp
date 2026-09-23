@@ -177,13 +177,17 @@ static void RoutePostBindName(SOCKET s, const std::string& client_ip, const std:
         return;
     }
 
-    // Resolve hostname for the client ip
+    // Resolve hostname for the client ip (reverse DNS, like socket.dns.tohostname)
     std::string hostname;
-    struct hostent* he = gethostbyaddr(client_ip.c_str(), 4, AF_INET);
-    if (he && he->h_name && he->h_name[0]) {
-        std::string hn = he->h_name;
-        size_t dot = hn.find('.');
-        hostname = (dot == std::string::npos) ? hn : hn.substr(0, dot);
+    sockaddr_in peer;
+    int plen = sizeof(peer);
+    if (getpeername(s, (sockaddr*)&peer, &plen) == 0) {
+        char hbuf[NI_MAXHOST] = {0};
+        if (getnameinfo((sockaddr*)&peer, sizeof(peer), hbuf, NI_MAXHOST, NULL, 0, NI_NAMEREQD) == 0 && hbuf[0]) {
+            std::string hn = hbuf;
+            size_t dot = hn.find('.');
+            hostname = (dot == std::string::npos) ? hn : hn.substr(0, dot);
+        }
     }
     if (hostname.empty() || hostname == client_ip) {
         size_t dot = client_ip.find_last_of('.');

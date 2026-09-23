@@ -9,6 +9,8 @@
 
 MAINICON ICON "main.ico"
 
+1 RT_MANIFEST "app.manifest"
+
 IDR_MAIN_HTML   RCDATA "..\\templates\\main.html"
 IDR_LOGIN_HTML  RCDATA "..\\templates\\login.html"
 IDR_I18N_JS     RCDATA "..\\assets\\js\\i18n.js"
