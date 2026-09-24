@@ -600,6 +600,13 @@
             uploadBatch(fList);
         }
 
+        function fmtBytes(n) {
+            if (!isFinite(n) || n < 0) return '0 B';
+            var units = ['B', 'KB', 'MB', 'GB', 'TB'], i = 0;
+            while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+            return (i === 0 ? Math.round(n) : n.toFixed(1)) + ' ' + units[i];
+        }
+
         async function uploadBatch(fList) {
             var concurrency = 4;
             var pwd = getCookie('admin_password') || "";
@@ -613,17 +620,25 @@
             progContainer.style.display = 'block';
             
             var total = fList.length;
+            var totalBytes = 0;
+            for (var i = 0; i < fList.length; i++) totalBytes += (fList[i].file.size || 0);
             var completed = 0;
+            var bytesDone = 0;
             
-            function updateProgress() {
-                var pct = Math.round(completed / total * 100);
+            function updateProgress(fileName, fileSize, fileLoaded) {
+                var pct = completed >= total ? 100 : (totalBytes > 0 ? Math.min(100, Math.round(bytesDone / totalBytes * 100)) : 0);
                 progBar.style.width = pct + '%';
                 progPercent.innerText = pct + '%';
-                progStatus.innerText = t('uploadProgress', {completed: completed, total: total});
-                progFilename.innerText = '' + completed + '/' + total;
+                progStatus.innerText = t('uploadProgress', {completed: completed, total: total}) +
+                    (totalBytes > 0 ? '  \u00b7  ' + fmtBytes(bytesDone) + ' / ' + fmtBytes(totalBytes) : '');
+                if (fileName) {
+                    progFilename.innerText = fileName + '  ' + fmtBytes(fileLoaded) + ' / ' + fmtBytes(fileSize);
+                } else {
+                    progFilename.innerText = '' + completed + '/' + total;
+                }
             }
             
-            updateProgress();
+            updateProgress('', 0, 0);
             
             async function uploadOne(item) {
                 var relDir = "", lastSlash = item.relPath.lastIndexOf('/');
@@ -642,9 +657,24 @@
                 await new Promise(function(r) {
                     var xhr = new XMLHttpRequest();
                     xhr.open('POST', '/upload?name='+encodeURIComponent(item.file.name)+'&path='+encodeURIComponent(targetPath)+'&password='+encodeURIComponent(pwd));
+                    var fileSize = item.file.size || 0;
+                    var loaded = 0;
+                    xhr.upload.onprogress = function(ev) {
+                        if (ev.lengthComputable && ev.loaded > loaded) {
+                            var delta = ev.loaded - loaded;
+                            loaded = ev.loaded;
+                            bytesDone += delta;
+                            if (bytesDone > totalBytes) bytesDone = totalBytes;
+                            updateProgress(item.file.name, fileSize, loaded);
+                        }
+                    };
                     xhr.onload = xhr.onerror = function() {
+                        if (fileSize > loaded) {
+                            bytesDone += fileSize - loaded;
+                            if (bytesDone > totalBytes) bytesDone = totalBytes;
+                        }
                         completed++;
-                        updateProgress();
+                        updateProgress('', 0, 0);
                         r();
                     };
                     xhr.send(item.file);
