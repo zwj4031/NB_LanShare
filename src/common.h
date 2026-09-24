@@ -106,6 +106,7 @@ void         EnsureDirW(const std::wstring& dir);
 bool         FileExistsW(const std::wstring& path);
 std::wstring GetFileNameW(const std::wstring& path);
 std::wstring GetParentW(const std::wstring& path);
+std::wstring SanitizeArgValue(const std::wstring& v);
 
 std::string  UrlEscape(const std::string& s);
 std::string  UrlUnescape(const std::string& s);

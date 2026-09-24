@@ -128,6 +128,18 @@ std::wstring GetParentW(const std::wstring& path) {
     return path.substr(0, p);
 }
 
+// CommandLineToArgvW drops the trailing backslash and keeps the closing quote as
+// a literal character when a quoted argument ends with a backslash, e.g.
+//   `"D:\"`  ->  argv = D:"
+// (shell context menus pass root paths like D:\ this way). Since " can never be
+// part of a Windows file name, a trailing quote means the original path ended
+// with '\' -- restore it so drive roots and backslash-terminated dirs survive.
+std::wstring SanitizeArgValue(const std::wstring& v) {
+    if (!v.empty() && v[v.size() - 1] == L'"')
+        return v.substr(0, v.size() - 1) + L'\\';
+    return v;
+}
+
 // ---------------------------------------------------------------------------
 // URL helpers
 // ---------------------------------------------------------------------------

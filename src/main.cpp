@@ -29,9 +29,30 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     WSAStartup(MAKEWORD(2, 2), &wsa);
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
+    // CommandLineToArgvW mishandles a quoted argument whose path ends with a
+    // backslash right before the closing quote (shell context menus pass root
+    // paths like M:\ that way): the backslash escapes the quote, so the quote is
+    // kept literally and the quoted region stays open, swallowing the rest of the
+    // command line (e.g. "-port 8921") into the same token. Insert one extra
+    // backslash so an odd backslash run before a " that is followed by a
+    // terminator becomes even -- argv then yields the clean path token.
+    std::wstring cmd = GetCommandLineW();
+    for (size_t i = 0; i < cmd.size(); ++i) {
+        if (cmd[i] != L'"') continue;
+        size_t j = i;
+        while (j > 0 && cmd[j - 1] == L'\\') --j;
+        size_t backs = i - j;                 // backslash run directly before the quote
+        if ((backs & 1) == 0) continue;       // even run: quote is a real delimiter
+        wchar_t next = (i + 1 < cmd.size()) ? cmd[i + 1] : L' ';
+        if (next != L' ' && next != L'\t' && next != L'\r' && next != L'\n')
+            continue;                         // not an intended closing delimiter
+        cmd.insert(i, 1, L'\\');              // odd -> even, quote now closes
+        ++i;                                  // skip the inserted char
+    }
+
     std::vector<std::wstring> args;
     int argc = 0;
-    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    LPWSTR* argv = CommandLineToArgvW(cmd.c_str(), &argc);
     if (argv) {
         for (int i = 1; i < argc; ++i) args.push_back(argv[i]);
         LocalFree(argv);

@@ -1051,11 +1051,11 @@ int RunMainWindow(HINSTANCE hInstance, const std::vector<std::wstring>& args) {
             SetWindowTextW(g_portEdit, args[++i].c_str());
         } else if (a == L"-pwd" && i + 1 < args.size()) {
             SetWindowTextW(g_pwdEdit, args[++i].c_str());
-            g_app.admin_pwd_utf8 = WideToUtf8(args[i]);
+            g_app.admin_pwd_utf8 = WideToUtf8(SanitizeArgValue(args[i]));
         } else if (a == L"-dir" && i + 1 < args.size()) {
-            dirArg = args[++i];
+            dirArg = SanitizeArgValue(args[++i]);
         } else if (a == L"-file" && i + 1 < args.size()) {
-            fileArg = args[++i];
+            fileArg = SanitizeArgValue(args[++i]);
         } else if (a == L"-hide") {
             hide = true;
         } else if (a == L"-min") {

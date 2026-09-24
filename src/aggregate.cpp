@@ -52,10 +52,10 @@ int ParsePort(const std::vector<std::wstring>& args) {
 bool ExtractOwnItem(const std::vector<std::wstring>& args, HandoffItem& out) {
     for (size_t i = 0; i < args.size(); ++i) {
         if (_wcsicmp(args[i].c_str(), L"-dir") == 0 && i + 1 < args.size()) {
-            out.is_dir = true;  out.path = args[i + 1];
+            out.is_dir = true;  out.path = SanitizeArgValue(args[i + 1]);
             return true;
         } else if (_wcsicmp(args[i].c_str(), L"-file") == 0 && i + 1 < args.size()) {
-            out.is_dir = false; out.path = args[i + 1];
+            out.is_dir = false; out.path = SanitizeArgValue(args[i + 1]);
             return true;
         }
     }
