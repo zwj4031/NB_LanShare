@@ -126,6 +126,8 @@ static COLORREF MixColor(COLORREF a, COLORREF b, int t) {
 }
 
 static LRESULT CALLBACK CaptionBtnProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    if (msg == WM_ERASEBKGND) return 1; // keep the default white erase off; WM_DRAWITEM paints the whole rect
+
     bool* pHover = NULL;
     if (hwnd == g_btnMin) pHover = &g_hoverMin;
     else if (hwnd == g_btnClose) pHover = &g_hoverClose;
@@ -773,22 +775,22 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     int cx = (r.left + r.right) / 2;
                     int cy = (r.top + r.bottom) / 2;
 
-                    // Flat transparent buttons: nothing is painted in the idle
-                    // state (fully blended into the title bar). Only hover and
-                    // press draw a flush overlay -- faint white for minimize,
-                    // Windows-red (#E81123 / #B8101C pressed) for close.
-                    if (hover || pressed) {
-                        COLORREF base;
-                        if (isClose) base = pressed ? RGB(184, 16, 28) : RGB(232, 17, 35);
-                        else         base = pressed ? MixColor(C_TITLEBG, RGB(255, 255, 255), 51)
-                                                    : MixColor(C_TITLEBG, RGB(255, 255, 255), 31);
-                        HBRUSH bb = CreateSolidBrush(base);
-                        FillRect(dis->hDC, &r, bb);
-                        DeleteObject(bb);
+                    // Always paint the full button rect (idle = title-bar bg) so
+                    // the button never shows a raw white background beneath the
+                    // glyph. Hover/press highlight as before.
+                    COLORREF base = C_TITLEBG;
+                    if (isClose) {
+                        if (pressed)      base = RGB(184, 16, 28);
+                        else if (hover)   base = RGB(232, 17, 35);
+                    } else {
+                        if (pressed)      base = MixColor(C_TITLEBG, RGB(255, 255, 255), 51);
+                        else if (hover)   base = MixColor(C_TITLEBG, RGB(255, 255, 255), 31);
                     }
 
-                    // Thin 1px vector glyphs: a 10px flat line (minimize) and a
-                    // 10x10px cross (close). No system runes, no thick strokes.
+                    HBRUSH bb = CreateSolidBrush(base);
+                    FillRect(dis->hDC, &r, bb);
+                    DeleteObject(bb);
+
                     COLORREF glyphCol = (isClose && (hover || pressed)) ? RGB(255, 255, 255) : RGB(235, 238, 245);
                     HPEN pen = CreatePen(PS_SOLID, 1, glyphCol);
                     HGDIOBJ op = SelectObject(dis->hDC, pen);
