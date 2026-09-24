@@ -502,6 +502,8 @@ static void HandleClient(SOCKET s, const std::string& ip) {
 // ---------------------------------------------------------------------------
 // Server thread
 // ---------------------------------------------------------------------------
+static HANDLE g_serverThread = NULL;
+
 static DWORD WINAPI ServerThread(LPVOID param) {
     SOCKET srv = (SOCKET)(UINT_PTR)param;
 
@@ -558,11 +560,16 @@ bool HttpServerStart(int port) {
     DWORD tid = 0;
     HANDLE h = CreateThread(NULL, 0, ServerThread, (LPVOID)(UINT_PTR)srv, 0, &tid);
     if (h == NULL) { closesocket(srv); return false; }
-    CloseHandle(h);
+    g_serverThread = h;
     return true;
 }
 
 void HttpServerStop() {
     InterlockedExchange(&g_app.server_stop, 1);
-    Sleep(250);
+    HANDLE h = g_serverThread;
+    g_serverThread = NULL;
+    if (h) {
+        WaitForSingleObject(h, 2000);
+        CloseHandle(h);
+    }
 }

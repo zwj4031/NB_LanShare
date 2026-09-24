@@ -117,6 +117,14 @@ static COLORREF Darken(COLORREF c, int f) {
     return RGB(GetRValue(c) * f / 100, GetGValue(c) * f / 100, GetBValue(c) * f / 100);
 }
 
+// Blend color a toward b by t/255 (t=0 -> a, t=255 -> b). Used to simulate
+// rgba(white, 0.12 / 0.2) overlays on the dark title bar without GDI+.
+static COLORREF MixColor(COLORREF a, COLORREF b, int t) {
+    return RGB((GetRValue(a) * (255 - t) + GetRValue(b) * t) / 255,
+               (GetGValue(a) * (255 - t) + GetGValue(b) * t) / 255,
+               (GetBValue(a) * (255 - t) + GetBValue(b) * t) / 255);
+}
+
 static LRESULT CALLBACK CaptionBtnProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     bool* pHover = NULL;
     if (hwnd == g_btnMin) pHover = &g_hoverMin;
@@ -667,7 +675,7 @@ static void PaintTitleBar(HWND hwnd) {
     SetBkMode(hdc, TRANSPARENT);
     SetTextColor(hdc, RGB(255, 255, 255));
     HFONT old = (HFONT)SelectObject(hdc, g_fontBold);
-    RECT tt = {12, 0, rc.right - 70, 32};
+    RECT tt = {12, 0, rc.right - 100, 32};
     DrawTextW(hdc, g_title.c_str(), -1, &tt, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
     SelectObject(hdc, old);
     ReleaseDC(hwnd, hdc);
@@ -759,55 +767,42 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     bool isClose = (dis->hwndItem == g_btnClose);
                     bool hover = isClose ? g_hoverClose : g_hoverMin;
                     bool pressed = (dis->itemState & ODS_SELECTED) != 0;
-                    COLORREF base = C_TITLEBG;
-                    if (hover && isClose) base = RGB(217, 17, 35);
-                    else if (hover) base = RGB(54, 70, 128);
-                    if (pressed) base = Darken(base, 82);
 
                     RECT r;
                     GetClientRect(dis->hwndItem, &r);
                     int cx = (r.left + r.right) / 2;
                     int cy = (r.top + r.bottom) / 2;
 
-                    HBRUSH bbr = CreateSolidBrush(base);
-                    HPEN bpn = CreatePen(PS_SOLID, 1, base);
-                    HGDIOBJ ob = SelectObject(dis->hDC, bbr);
-                    HGDIOBJ opn = SelectObject(dis->hDC, bpn);
-                    RoundRect(dis->hDC, 1, 1, r.right - 2, r.bottom - 2, 7, 7);
-                    SelectObject(dis->hDC, opn);
-                    DeleteObject(bpn);
-                    SelectObject(dis->hDC, ob);
-                    DeleteObject(bbr);
-
-                    HPEN gpen = CreatePen(PS_SOLID, 2, RGB(255, 255, 255));
-                    HGDIOBJ og = SelectObject(dis->hDC, gpen);
-                    if (isClose) {
-                        MoveToEx(dis->hDC, cx - 6, cy - 6, NULL);
-                        LineTo(dis->hDC, cx - 1, cy - 1);
-                        MoveToEx(dis->hDC, cx + 1, cy + 1, NULL);
-                        LineTo(dis->hDC, cx + 6, cy + 6);
-                        MoveToEx(dis->hDC, cx + 6, cy - 6, NULL);
-                        LineTo(dis->hDC, cx + 1, cy - 1);
-                        MoveToEx(dis->hDC, cx - 1, cy + 1, NULL);
-                        LineTo(dis->hDC, cx - 6, cy + 6);
-                        SelectObject(dis->hDC, og);
-                        DeleteObject(gpen);
-                        HBRUSH hb = CreateSolidBrush(base);
-                        RECT hr;
-                        hr.left = cx - 1; hr.top = cy - 1;
-                        hr.right = cx + 2; hr.bottom = cy + 2;
-                        FillRect(dis->hDC, &hr, hb);
-                        DeleteObject(hb);
-                    } else {
-                        RECT bar;
-                        bar.left = cx - 7; bar.top = cy - 1;
-                        bar.right = cx + 7; bar.bottom = cy + 2;
-                        HBRUSH wb = CreateSolidBrush(RGB(255, 255, 255));
-                        FillRect(dis->hDC, &bar, wb);
-                        DeleteObject(wb);
-                        SelectObject(dis->hDC, og);
-                        DeleteObject(gpen);
+                    // Flat transparent buttons: nothing is painted in the idle
+                    // state (fully blended into the title bar). Only hover and
+                    // press draw a flush overlay -- faint white for minimize,
+                    // Windows-red (#E81123 / #B8101C pressed) for close.
+                    if (hover || pressed) {
+                        COLORREF base;
+                        if (isClose) base = pressed ? RGB(184, 16, 28) : RGB(232, 17, 35);
+                        else         base = pressed ? MixColor(C_TITLEBG, RGB(255, 255, 255), 51)
+                                                    : MixColor(C_TITLEBG, RGB(255, 255, 255), 31);
+                        HBRUSH bb = CreateSolidBrush(base);
+                        FillRect(dis->hDC, &r, bb);
+                        DeleteObject(bb);
                     }
+
+                    // Thin 1px vector glyphs: a 10px flat line (minimize) and a
+                    // 10x10px cross (close). No system runes, no thick strokes.
+                    COLORREF glyphCol = (isClose && (hover || pressed)) ? RGB(255, 255, 255) : RGB(235, 238, 245);
+                    HPEN pen = CreatePen(PS_SOLID, 1, glyphCol);
+                    HGDIOBJ op = SelectObject(dis->hDC, pen);
+                    if (isClose) {
+                        MoveToEx(dis->hDC, cx - 5, cy - 5, NULL);
+                        LineTo(dis->hDC, cx + 5, cy + 5);
+                        MoveToEx(dis->hDC, cx + 5, cy - 5, NULL);
+                        LineTo(dis->hDC, cx - 5, cy + 5);
+                    } else {
+                        MoveToEx(dis->hDC, cx - 5, cy, NULL);
+                        LineTo(dis->hDC, cx + 5, cy);
+                    }
+                    SelectObject(dis->hDC, op);
+                    DeleteObject(pen);
                     return TRUE;
                 }
 
@@ -870,8 +865,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     ShellExecuteW(NULL, L"open", Utf8ToWide(g_app.current_share_url).c_str(), NULL, NULL, SW_SHOWNORMAL);
             } else if (code == BN_CLICKED) {
                 switch (id) {
-                    case ID_BTN_MIN: ShowWindow(hwnd, SW_MINIMIZE); break;
-                    case ID_BTN_CLOSE: if (g_app.is_running) ToggleServer(); DestroyWindow(hwnd); break;
+case ID_BTN_MIN: ShowWindow(hwnd, SW_MINIMIZE); break;
+            case ID_BTN_CLOSE: DestroyWindow(hwnd); break;
                     case ID_BTN_FILE: SelectFile(); break;
                     case ID_BTN_DIR: SelectDir(); break;
                     case ID_BTN_TOGGLE: ToggleServer(); break;
@@ -896,7 +891,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case WM_LBUTTONDOWN: {
             int x = GET_X_LPARAM(lp);
             int y = GET_Y_LPARAM(lp);
-            if (y < 32 && x < 500 - 64) {
+            RECT cr;
+            GetClientRect(hwnd, &cr);
+            // Drag region is strictly the title bar EXCLUDING the caption
+            // button zone (last 92px), so clicking minimize/close never starts
+            // a window drag and vice versa.
+            if (y < 32 && x < cr.right - 92) {
                 ReleaseCapture();
                 SendMessageW(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
             }
@@ -933,6 +933,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             }
             return 0;
         }
+        case WM_CLOSE:
+            // Unified graceful shutdown for every close path (caption X, Alt+F4,
+            // taskbar). DestroyWindow -> WM_DESTROY stops the HTTP listener and
+            // joins its thread, then PostQuitMessage leaves the message loop.
+            DestroyWindow(hwnd);
+            return 0;
         case WM_DESTROY:
             if (g_app.is_running) HttpServerStop();
             PostQuitMessage(0);
@@ -1013,9 +1019,12 @@ int RunMainWindow(HINSTANCE hInstance, const std::vector<std::wstring>& args) {
 
     InitCombo(g_ipCombo);
 
-    // create title bar buttons
-    g_btnMin = MkButton(hwnd, ID_BTN_MIN, L"", w - 64, 0, 32, 32, C_TITLEBG, RGB(255, 255, 255), false);
-    g_btnClose = MkButton(hwnd, ID_BTN_CLOSE, L"", w - 32, 0, 32, 32, C_TITLEBG, RGB(255, 255, 255), false);
+    // create title bar buttons (44-48px wide, full title-bar height, flush right)
+    const int CB_W = 46;
+    g_btnMin = MkButton(hwnd, ID_BTN_MIN, L"", w - CB_W * 2, 0, CB_W, 32, C_TITLEBG, RGB(255, 255, 255), false);
+    g_btnClose = MkButton(hwnd, ID_BTN_CLOSE, L"", w - CB_W, 0, CB_W, 32, C_TITLEBG, RGB(255, 255, 255), false);
+    SetWindowLongPtrW(g_btnMin, GWL_STYLE, (LONG_PTR)(GetWindowLongPtrW(g_btnMin, GWL_STYLE) & ~WS_TABSTOP));
+    SetWindowLongPtrW(g_btnClose, GWL_STYLE, (LONG_PTR)(GetWindowLongPtrW(g_btnClose, GWL_STYLE) & ~WS_TABSTOP));
     g_captionOldProc = (WNDPROC)SetWindowLongPtrW(g_btnMin, GWLP_WNDPROC, (LONG_PTR)CaptionBtnProc);
     SetWindowLongPtrW(g_btnClose, GWLP_WNDPROC, (LONG_PTR)CaptionBtnProc);
 
