@@ -784,27 +784,38 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                         else if (hover)   base = RGB(232, 17, 35);
                     } else {
                         if (pressed)      base = MixColor(C_TITLEBG, RGB(255, 255, 255), 51);
-                        else if (hover)   base = MixColor(C_TITLEBG, RGB(255, 255, 255), 31);
+                        else if (hover)   base = MixColor(C_TITLEBG, RGB(255, 255, 255), 25);
                     }
 
                     HBRUSH bb = CreateSolidBrush(base);
                     FillRect(dis->hDC, &r, bb);
                     DeleteObject(bb);
 
-                    COLORREF glyphCol = (isClose && (hover || pressed)) ? RGB(255, 255, 255) : RGB(235, 238, 245);
-                    HPEN pen = CreatePen(PS_SOLID, 1, glyphCol);
-                    HGDIOBJ op = SelectObject(dis->hDC, pen);
+                    COLORREF glyphCol = (hover || pressed) ? RGB(255, 255, 255) : RGB(170, 185, 205);
                     if (isClose) {
-                        MoveToEx(dis->hDC, cx - 5, cy - 5, NULL);
-                        LineTo(dis->hDC, cx + 5, cy + 5);
-                        MoveToEx(dis->hDC, cx + 5, cy - 5, NULL);
-                        LineTo(dis->hDC, cx - 5, cy + 5);
+                        // Antialiased Marlett close cross (no LineTo jaggies).
+                        HFONT ml = CreateFontW(-16, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET,
+                                              OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                                              CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Marlett");
+                        HFONT oldMl = (HFONT)SelectObject(dis->hDC, ml);
+                        SetBkMode(dis->hDC, TRANSPARENT);
+                        SetTextColor(dis->hDC, glyphCol);
+                        wchar_t capGlyph = L'r';
+                        DrawTextW(dis->hDC, &capGlyph, 1, &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                        SelectObject(dis->hDC, oldMl);
+                        DeleteObject(ml);
                     } else {
-                        MoveToEx(dis->hDC, cx - 5, cy, NULL);
-                        LineTo(dis->hDC, cx + 5, cy);
+                        // Minimize: bottom-anchored horizontal line (aligned with
+                        // the bottom of the cross, never a floating minus sign).
+                        // Endpoint is cx+6 because GDI LineTo omits the last pixel.
+                        int lineY = cy + 4;
+                        HPEN pen = CreatePen(PS_SOLID, 1, glyphCol);
+                        HGDIOBJ op = SelectObject(dis->hDC, pen);
+                        MoveToEx(dis->hDC, cx - 5, lineY, NULL);
+                        LineTo(dis->hDC, cx + 6, lineY);
+                        SelectObject(dis->hDC, op);
+                        DeleteObject(pen);
                     }
-                    SelectObject(dis->hDC, op);
-                    DeleteObject(pen);
                     return TRUE;
                 }
 
