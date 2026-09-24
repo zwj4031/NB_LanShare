@@ -760,36 +760,54 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     bool hover = isClose ? g_hoverClose : g_hoverMin;
                     bool pressed = (dis->itemState & ODS_SELECTED) != 0;
                     COLORREF base = C_TITLEBG;
-                    if (hover || pressed) base = isClose ? RGB(205, 76, 70) : RGB(59, 72, 104);
+                    if (hover && isClose) base = RGB(217, 17, 35);
+                    else if (hover) base = RGB(54, 70, 128);
                     if (pressed) base = Darken(base, 82);
 
                     RECT r;
                     GetClientRect(dis->hwndItem, &r);
-                    HBRUSH br = CreateSolidBrush(base);
-                    FillRect(dis->hDC, &r, br);
-                    DeleteObject(br);
-
                     int cx = (r.left + r.right) / 2;
                     int cy = (r.top + r.bottom) / 2;
-                    HBRUSH wb = CreateSolidBrush(RGB(255, 255, 255));
+
+                    HBRUSH bbr = CreateSolidBrush(base);
+                    HPEN bpn = CreatePen(PS_SOLID, 1, base);
+                    HGDIOBJ ob = SelectObject(dis->hDC, bbr);
+                    HGDIOBJ opn = SelectObject(dis->hDC, bpn);
+                    RoundRect(dis->hDC, 1, 1, r.right - 2, r.bottom - 2, 7, 7);
+                    SelectObject(dis->hDC, opn);
+                    DeleteObject(bpn);
+                    SelectObject(dis->hDC, ob);
+                    DeleteObject(bbr);
+
+                    HPEN gpen = CreatePen(PS_SOLID, 2, RGB(255, 255, 255));
+                    HGDIOBJ og = SelectObject(dis->hDC, gpen);
                     if (isClose) {
-                        HPEN pen = CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
-                        HGDIOBJ op = SelectObject(dis->hDC, pen);
                         MoveToEx(dis->hDC, cx - 6, cy - 6, NULL);
+                        LineTo(dis->hDC, cx - 1, cy - 1);
+                        MoveToEx(dis->hDC, cx + 1, cy + 1, NULL);
                         LineTo(dis->hDC, cx + 6, cy + 6);
                         MoveToEx(dis->hDC, cx + 6, cy - 6, NULL);
+                        LineTo(dis->hDC, cx + 1, cy - 1);
+                        MoveToEx(dis->hDC, cx - 1, cy + 1, NULL);
                         LineTo(dis->hDC, cx - 6, cy + 6);
-                        SelectObject(dis->hDC, op);
-                        DeleteObject(pen);
+                        SelectObject(dis->hDC, og);
+                        DeleteObject(gpen);
+                        HBRUSH hb = CreateSolidBrush(base);
+                        RECT hr;
+                        hr.left = cx - 1; hr.top = cy - 1;
+                        hr.right = cx + 2; hr.bottom = cy + 2;
+                        FillRect(dis->hDC, &hr, hb);
+                        DeleteObject(hb);
                     } else {
                         RECT bar;
-                        bar.left = cx - 6; bar.top = cy - 1;
-                        bar.right = cx + 6; bar.bottom = cy + 1;
-                        HGDIOBJ ob = SelectObject(dis->hDC, wb);
+                        bar.left = cx - 7; bar.top = cy - 1;
+                        bar.right = cx + 7; bar.bottom = cy + 2;
+                        HBRUSH wb = CreateSolidBrush(RGB(255, 255, 255));
                         FillRect(dis->hDC, &bar, wb);
-                        SelectObject(dis->hDC, ob);
+                        DeleteObject(wb);
+                        SelectObject(dis->hDC, og);
+                        DeleteObject(gpen);
                     }
-                    DeleteObject(wb);
                     return TRUE;
                 }
 
